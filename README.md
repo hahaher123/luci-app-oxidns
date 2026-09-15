@@ -2,7 +2,7 @@
 
 语言：中文 | [English](./README.en.md)
 
-> **来源与自用声明**：本仓库是 [svenshi/luci-app-oxidns](https://github.com/svenshi/luci-app-oxidns) 的个人自用分支（fork），仅在自己的路由器上使用；OxiDNS 内核来自 [svenshi/oxidns](https://github.com/svenshi/oxidns)。本分支不发布 Release、不走上游的官方安装脚本、也不保证跟进上游更新，遇到问题请以上游为准；安装方式见下方「构建与安装」。本分支相对上游的改动见文末「本分支的自用改动」。
+> **来源与自用声明**：本仓库是 [svenshi/luci-app-oxidns](https://github.com/svenshi/luci-app-oxidns) 的个人自用分支（fork），仅在自己的路由器上使用；OxiDNS 内核来自 [svenshi/oxidns](https://github.com/svenshi/oxidns)。本分支的 Release 只发在自己的仓库里，不使用上游的官方安装脚本，也不跟上游 Release 混用；不保证跟进上游更新，遇到问题请以上游为准。安装方式见下方「安装」，本分支相对上游的改动见文末「本分支的自用改动」。
 
 `luci-app-oxidns` 是 OxiDNS 的 OpenWrt / LuCI 管理插件。安装后，LuCI 会出现 `Services -> OxiDNS` 页面，用来安装 OxiDNS 内核二进制、管理 OpenWrt 服务、编辑配置和查看日志。
 
@@ -13,11 +13,24 @@
 - `luci-app-oxidns`：LuCI 管理页面、rpcd 后端和 OpenWrt init 服务脚本。
 - `luci-i18n-oxidns-zh-cn`：可选简体中文语言包。
 
-## 构建与安装
+## 安装
 
-本分支自用，不执行上游的官方安装脚本（`https://oxidns.org/install.sh`），也不从上游 Release 下载包：先在本仓库构建，再把包装到路由器。
+本分支自用，不执行上游的官方安装脚本（`https://oxidns.org/install.sh`）。包有两个来源：本仓库 Release 的构建产物，或自己在本仓库构建。
 
-先构建，需要 `tar`、`gzip`、`node`、`sha256sum`：
+### 从本仓库 Release 下载
+
+Release 里的包是 `noarch`，与设备架构无关，`apk` 和 `opkg` 各一份，另附 `sha256sums.txt`。以 `apk` 系统为例：
+
+```sh
+curl -fsSLO https://github.com/hahaher123/luci-app-oxidns/releases/download/v0.1.1/luci-app-oxidns_0.1.1-r1_all.apk
+curl -fsSLO https://github.com/hahaher123/luci-app-oxidns/releases/download/v0.1.1/luci-i18n-oxidns-zh-cn_0.1.1-r1_all.apk
+```
+
+使用 `opkg` 的系统把文件名换成 `.ipk`。想固定拿最新一版，也可以用 `https://github.com/hahaher123/luci-app-oxidns/releases/latest/download/<文件名>`。
+
+### 自己构建
+
+需要 `tar`、`gzip`、`node`、`sha256sum`：
 
 ```sh
 scripts/build-luci-package.sh 0.1.1 dist
@@ -25,7 +38,9 @@ scripts/build-luci-package.sh 0.1.1 dist
 
 省略版本号时默认取 `Makefile` 里的 `PKG_VERSION`（当前为 `0.1.1`）。产物写在 `dist/`：`luci-app-oxidns` 和 `luci-i18n-oxidns-zh-cn` 各一份 `.ipk` 和 `.apk`，另有 `sha256sums.txt`。
 
-把 `dist/` 里的包拷到路由器后安装。使用 `apk` 的 OpenWrt 系统：
+### 装到路由器
+
+把包拷到路由器后安装。使用 `apk` 的 OpenWrt 系统：
 
 ```sh
 apk add --allow-untrusted --no-network ./luci-app-oxidns_0.1.1-r1_all.apk
@@ -123,3 +138,8 @@ LuCI 会按当前设备 CPU 架构选择 OxiDNS Linux musl release archive，例
 - 校验通过后又改了正文，旧结论会降级为「内容已修改，请重新校验」。
 - 保留 RPC 调用失败的真实错误文案（原先会被 `L.resolveDefault()` 吞成 "Operation failed"）。
 - 新增文案已同步进 `po/templates/oxidns.pot` 与 `po/zh_Hans/oxidns.po`，可直接 `scripts/build-luci-package.sh` 出包。
+
+另外为保证在 Windows 上构建出的包也能在路由器上直接用：
+
+- 新增 `.gitattributes`（`* text=auto eol=lf`），让任何平台检出的源码都是 LF。
+- `scripts/check.sh` 增加行尾守卫：打包范围内的源文件只要含 `CRLF` 就直接失败并列出文件名。`core.autocrlf=true` 的检出会把 CRLF 打进包，`/usr/libexec/rpcd/luci.oxidns` 与 `/etc/init.d/oxidns` 的 shebang 会变成 `#!/bin/sh\r`，在路由器上起不来。

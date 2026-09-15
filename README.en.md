@@ -2,7 +2,7 @@
 
 Language: [中文](./README.md) | English
 
-> **Source and personal-use notice**: this repository is a personal fork of [svenshi/luci-app-oxidns](https://github.com/svenshi/luci-app-oxidns) used on one home router; the OxiDNS core comes from [svenshi/oxidns](https://github.com/svenshi/oxidns). This fork publishes no Release, does not use the upstream official installer script, does not promise to track upstream, and is not affiliated with the upstream author. See "Build And Install" below for how packages are produced. The local differences are listed at the end of this file.
+> **Source and personal-use notice**: this repository is a personal fork of [svenshi/luci-app-oxidns](https://github.com/svenshi/luci-app-oxidns) used on one home router; the OxiDNS core comes from [svenshi/oxidns](https://github.com/svenshi/oxidns). This fork publishes its own Releases in this repository only, does not use the upstream official installer script, and does not mix with upstream Releases; it does not promise to track upstream and is not affiliated with the upstream author. See "Install" below. The local differences are listed at the end of this file.
 
 `luci-app-oxidns` is the LuCI management app for OxiDNS on OpenWrt. After installation, LuCI adds `Services -> OxiDNS` pages for installing the OxiDNS core binary, managing the OpenWrt service, editing configuration, and viewing logs.
 
@@ -13,11 +13,24 @@ This app does not embed the OxiDNS core binary and no longer manages a separate 
 - `luci-app-oxidns`: LuCI pages, rpcd backend, and OpenWrt init service script.
 - `luci-i18n-oxidns-zh-cn`: optional Simplified Chinese translation package.
 
-## Build And Install
+## Install
 
-This fork is for personal use: it does not run the upstream official installer (`https://oxidns.org/install.sh`) and does not download packages from upstream Releases. Build locally first, then install the packages on the router.
+This fork is for personal use and does not run the upstream official installer (`https://oxidns.org/install.sh`). Packages come either from this repository's Release or from a local build.
 
-Build first; `tar`, `gzip`, `node`, and `sha256sum` are required:
+### From this repository's Release
+
+Release packages are `noarch`, so the device architecture does not matter; there is one `apk` and one `opkg` package, plus `sha256sums.txt`. For `apk` systems:
+
+```sh
+curl -fsSLO https://github.com/hahaher123/luci-app-oxidns/releases/download/v0.1.1/luci-app-oxidns_0.1.1-r1_all.apk
+curl -fsSLO https://github.com/hahaher123/luci-app-oxidns/releases/download/v0.1.1/luci-i18n-oxidns-zh-cn_0.1.1-r1_all.apk
+```
+
+For `opkg` systems use the `.ipk` names. To always take the newest one, use `https://github.com/hahaher123/luci-app-oxidns/releases/latest/download/<name>`.
+
+### Build locally
+
+`tar`, `gzip`, `node`, and `sha256sum` are required:
 
 ```sh
 scripts/build-luci-package.sh 0.1.1 dist
@@ -25,7 +38,9 @@ scripts/build-luci-package.sh 0.1.1 dist
 
 Without an explicit version the script uses `PKG_VERSION` from `Makefile` (currently `0.1.1`). Output goes to `dist/`: one `.ipk` and one `.apk` each for `luci-app-oxidns` and `luci-i18n-oxidns-zh-cn`, plus `sha256sums.txt`.
 
-Copy the packages from `dist/` to the router and install them there. On OpenWrt systems using `apk`:
+### Install on the router
+
+Copy the packages to the router and install them there. On OpenWrt systems using `apk`:
 
 ```sh
 apk add --allow-untrusted --no-network ./luci-app-oxidns_0.1.1-r1_all.apk
@@ -123,3 +138,8 @@ Apart from the version bump, only the configuration page feedback was changed (`
 - Editing the YAML after a successful check downgrades the stale result to "the content changed since it was last checked".
 - Real RPC failure messages are preserved (`L.resolveDefault()` used to collapse them into "Operation failed").
 - The new strings are added to `po/templates/oxidns.pot` and `po/zh_Hans/oxidns.po`, so `scripts/build-luci-package.sh` still builds the packages.
+
+To keep packages built on Windows usable on the router:
+
+- `.gitattributes` (`* text=auto eol=lf`) makes every checkout LF, whatever the local git settings are.
+- `scripts/check.sh` fails when a packaged source contains CRLF, listing the files. With `core.autocrlf=true` the package used to ship CRLF copies of `/usr/libexec/rpcd/luci.oxidns` and `/etc/init.d/oxidns`, whose shebang became `#!/bin/sh\r` and which then did not start on the router.
