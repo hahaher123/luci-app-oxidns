@@ -59,6 +59,41 @@ if (failures.length) {
 	process.exit(1);
 }
 NODE
+node <<'NODE'
+const fs = require('fs');
+const path = require('path');
+
+function walk(dir, out) {
+	for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+		const full = path.join(dir, entry.name);
+		if (entry.isDirectory())
+			walk(full, out);
+		else if (entry.isFile())
+			out.push(full);
+	}
+}
+
+const files = [];
+for (const root of ['htdocs', 'root', 'po', 'scripts', 'Makefile', 'README.md', 'README.en.md']) {
+	const stat = fs.statSync(root, { throwIfNoEntry: false });
+	if (!stat)
+		continue;
+	if (stat.isDirectory())
+		walk(root, files);
+	else
+		files.push(root);
+}
+
+const crlf = files.filter((file) => fs.readFileSync(file).includes(Buffer.from('\r\n')));
+if (crlf.length) {
+	console.error('CRLF line endings found in packaged sources:');
+	for (const file of crlf)
+		console.error(`  ${file}`);
+	console.error('These files are packaged for the router, where the rpcd backend and init script are executed.');
+	console.error('Keep them LF: check .gitattributes and core.autocrlf, then rebuild.');
+	process.exit(1);
+}
+NODE
 for script in scripts/po2lmo.mjs scripts/strip-tar-eof.mjs scripts/write-apk-data-tar.mjs scripts/write-ar-archive.mjs; do
 	node --check "$script"
 done
