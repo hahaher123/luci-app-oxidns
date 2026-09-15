@@ -2,6 +2,8 @@
 
 Language: [中文](./README.md) | English
 
+> **Source and personal-use notice**: this repository is a personal fork of [svenshi/luci-app-oxidns](https://github.com/svenshi/luci-app-oxidns) used on one home router; the OxiDNS core comes from [svenshi/oxidns](https://github.com/svenshi/oxidns). The install instructions, Release URLs, and official installer script below all point at upstream. This fork publishes no Release, does not promise to track upstream, and is not affiliated with the upstream author. The local differences are listed at the end of this file.
+
 `luci-app-oxidns` is the LuCI management app for OxiDNS on OpenWrt. After installation, LuCI adds `Services -> OxiDNS` pages for installing the OxiDNS core binary, managing the OpenWrt service, editing configuration, and viewing logs.
 
 This app does not embed the OxiDNS core binary and no longer manages a separate OpenWrt `oxidns` runtime package. LuCI downloads the official OxiDNS GitHub Release archive, verifies the SHA256 digest, and installs the binary as an OpenWrt service. Future OxiDNS core upgrades are handled by OxiDNS itself; LuCI does not provide core-upgrade or LuCI-app self-upgrade buttons.
@@ -107,3 +109,17 @@ The router must be able to reach GitHub Releases and release archives directly. 
 - The `Core` page handles first install, upload install, and repair reinstall only, not version upgrades.
 - The `Overview` WebUI entry is generated from the HTTP listen address in the config file. If it listens on `127.0.0.1`, LuCI keeps the link and shows a hint that local access or an SSH tunnel is required.
 - The log page reads OxiDNS service stdout/stderr output from OpenWrt `logread`.
+
+## Local Changes In This Fork
+
+Only the configuration page feedback was changed (`htdocs/luci-static/resources/view/oxidns/config.js` and `po/`), to make validate / save results obvious:
+
+- The result is rendered as a coloured panel (green pass, yellow not-applied/partial, red failure, grey in-progress) with a conclusion headline.
+- The same conclusion is also shown as a 6-second banner at the top of the page, so it is visible while scrolled up in the editor.
+- While a call is in flight the buttons are disabled, the clicked one spins, and the panel says the operation is running instead of showing a modal that flashes away.
+- Multi-line `oxidns check` diagnostics keep their line breaks, and ANSI escapes are stripped.
+- `Save` and `Save & Restart` are now distinguishable: plain `Save` only writes the file, so it reports a yellow "saved but not applied to the running service" with a hint to use `Save & Restart`.
+- When the file was written but the service failed to restart (rpcd `service_unavailable` / `service_restart_failed`), the result is a yellow "saved, but the service did not restart" instead of a plain red failure.
+- Editing the YAML after a successful check downgrades the stale result to "the content changed since it was last checked".
+- Real RPC failure messages are preserved (`L.resolveDefault()` used to collapse them into "Operation failed").
+- The new strings are added to `po/templates/oxidns.pot` and `po/zh_Hans/oxidns.po`, so `scripts/build-luci-package.sh` still builds the packages.

@@ -56,6 +56,12 @@ msgstr ""
 msgid "Configuration and working directory data are preserved unless selected below."
 msgstr ""
 
+msgid "Configuration is valid"
+msgstr ""
+
+msgid "Configuration saved and service restarted"
+msgstr ""
+
 msgid "Configure OxiDNS core download sources, runtime paths, and optional download credentials."
 msgstr ""
 
@@ -167,12 +173,6 @@ msgstr ""
 msgid "Not installed"
 msgstr ""
 
-msgid "Operation completed."
-msgstr ""
-
-msgid "Operation failed"
-msgstr ""
-
 msgid "Optional. The token is never shown after saving."
 msgstr ""
 
@@ -260,7 +260,16 @@ msgstr ""
 msgid "Save & Restart"
 msgstr ""
 
+msgid "Save failed"
+msgstr ""
+
 msgid "Save Settings"
+msgstr ""
+
+msgid "Saved, but not applied to the running service"
+msgstr ""
+
+msgid "Saved, but the service did not restart"
 msgstr ""
 
 msgid "Saving and restarting service..."
@@ -317,6 +326,12 @@ msgstr ""
 msgid "Details"
 msgstr ""
 
+msgid "The content changed since it was last checked"
+msgstr ""
+
+msgid "The running service still uses the previous configuration. Use Save & Restart to apply the changes."
+msgstr ""
+
 msgid "Unable to query OxiDNS status"
 msgstr ""
 
@@ -345,6 +360,9 @@ msgid "Validating configuration..."
 msgstr ""
 
 msgid "Unpack core archive"
+msgstr ""
+
+msgid "Validation failed"
 msgstr ""
 
 msgid "Verify checksum"

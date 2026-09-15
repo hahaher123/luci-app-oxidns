@@ -2,6 +2,8 @@
 
 语言：中文 | [English](./README.en.md)
 
+> **来源与自用声明**：本仓库是 [svenshi/luci-app-oxidns](https://github.com/svenshi/luci-app-oxidns) 的个人自用分支（fork），仅在自己的路由器上使用；OxiDNS 内核来自 [svenshi/oxidns](https://github.com/svenshi/oxidns)。下面的安装说明、Release 地址和官方安装脚本都指向上游，本分支不发布 Release、也不保证跟进上游更新，遇到问题请以上游为准。本分支相对上游的改动见文末「本分支的自用改动」。
+
 `luci-app-oxidns` 是 OxiDNS 的 OpenWrt / LuCI 管理插件。安装后，LuCI 会出现 `Services -> OxiDNS` 页面，用来安装 OxiDNS 内核二进制、管理 OpenWrt 服务、编辑配置和查看日志。
 
 这个插件不内置 OxiDNS 内核，也不再管理独立的 OpenWrt `oxidns` 包。LuCI 负责从 OxiDNS 官方 GitHub Releases 下载 release archive，校验 SHA256 digest，并把二进制安装为 OpenWrt 服务。后续 OxiDNS 内核升级由 OxiDNS 自带的升级功能完成，LuCI 不提供内核升级或 LuCI app 自升级按钮。
@@ -107,3 +109,17 @@ LuCI 会按当前设备 CPU 架构选择 OxiDNS Linux musl release archive，例
 - `Core` 页面只负责首次安装、上传安装和修复重装，不负责版本升级。
 - `Overview` 的 WebUI 入口根据配置文件中的 HTTP listen 地址生成；如果监听 `127.0.0.1`，LuCI 会保留链接并提示需要本机访问或 SSH 隧道。
 - 日志页读取 OpenWrt `logread` 中的 OxiDNS 服务 stdout/stderr 输出。
+
+## 本分支的自用改动
+
+相对上游只改了配置页的提示显示（`htdocs/luci-static/resources/view/oxidns/config.js` 与 `po/`），目的是让「校验 / 保存」的结果一眼可见：
+
+- 结果面板按状态着色：校验通过（绿）、未生效 / 部分成功（黄）、失败（红）、进行中（灰），每条都有结论标题。
+- 结论同时以页面顶部横幅弹出一条 6 秒提示，滚到配置正文上方也能看见。
+- 校验过程中按钮禁用、被点的按钮转圈，面板显示「正在校验配置…」，不再只有一个一闪而过的弹窗。
+- `oxidns check` 的多行诊断按原样换行显示，并剥掉终端 ANSI 转义。
+- 区分 `Save` 与 `Save & Restart`：`Save` 只写文件不生效，提示为黄色「已保存，但未对运行中的服务生效」并说明需要 `Save & Restart`。
+- 文件已写入但服务没起来（后端 `service_unavailable` / `service_restart_failed`）时改为黄色「已保存，但服务未重启」，不再笼统报红。
+- 校验通过后又改了正文，旧结论会降级为「内容已修改，请重新校验」。
+- 保留 RPC 调用失败的真实错误文案（原先会被 `L.resolveDefault()` 吞成 "Operation failed"）。
+- 新增文案已同步进 `po/templates/oxidns.pot` 与 `po/zh_Hans/oxidns.po`，可直接 `scripts/build-luci-package.sh` 出包。

@@ -58,6 +58,12 @@ msgstr "配置"
 msgid "Configuration and working directory data are preserved unless selected below."
 msgstr "除非勾选下面的选项，否则配置和工作目录数据会保留。"
 
+msgid "Configuration is valid"
+msgstr "配置校验通过"
+
+msgid "Configuration saved and service restarted"
+msgstr "配置已保存并重启服务"
+
 msgid "Configure OxiDNS core download sources, runtime paths, and optional download credentials."
 msgstr "配置 OxiDNS 内核下载源、运行路径和可选下载凭据。"
 
@@ -169,12 +175,6 @@ msgstr "否"
 msgid "Not installed"
 msgstr "未安装"
 
-msgid "Operation completed."
-msgstr "操作已完成。"
-
-msgid "Operation failed"
-msgstr "操作失败"
-
 msgid "Optional. The token is never shown after saving."
 msgstr "可选。保存后不会再显示 Token。"
 
@@ -265,8 +265,17 @@ msgstr "保存"
 msgid "Save & Restart"
 msgstr "保存并重启"
 
+msgid "Save failed"
+msgstr "保存失败"
+
 msgid "Save Settings"
 msgstr "保存设置"
+
+msgid "Saved, but not applied to the running service"
+msgstr "已保存，但未对运行中的服务生效"
+
+msgid "Saved, but the service did not restart"
+msgstr "已保存，但服务未重启"
 
 msgid "Saving and restarting service..."
 msgstr "正在保存并重启服务..."
@@ -322,6 +331,12 @@ msgstr "目标架构"
 msgid "Details"
 msgstr "详情"
 
+msgid "The content changed since it was last checked"
+msgstr "内容已修改，请重新校验"
+
+msgid "The running service still uses the previous configuration. Use Save & Restart to apply the changes."
+msgstr "运行中的服务仍在使用旧配置，如需生效请点击「保存并重启」。"
+
 msgid "Unable to query OxiDNS status"
 msgstr "无法查询 OxiDNS 状态"
 
@@ -351,6 +366,9 @@ msgstr "正在校验配置..."
 
 msgid "Unpack core archive"
 msgstr "解压内核压缩包"
+
+msgid "Validation failed"
+msgstr "校验未通过"
 
 msgid "Verify checksum"
 msgstr "校验 checksum"
