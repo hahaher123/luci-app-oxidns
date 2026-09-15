@@ -2,7 +2,7 @@
 
 语言：中文 | [English](./README.en.md)
 
-> **来源与自用声明**：本仓库是 [svenshi/luci-app-oxidns](https://github.com/svenshi/luci-app-oxidns) 的个人自用分支（fork），仅在自己的路由器上使用；OxiDNS 内核来自 [svenshi/oxidns](https://github.com/svenshi/oxidns)。下面的安装说明、Release 地址和官方安装脚本都指向上游，本分支不发布 Release、也不保证跟进上游更新，遇到问题请以上游为准。本分支相对上游的改动见文末「本分支的自用改动」。
+> **来源与自用声明**：本仓库是 [svenshi/luci-app-oxidns](https://github.com/svenshi/luci-app-oxidns) 的个人自用分支（fork），仅在自己的路由器上使用；OxiDNS 内核来自 [svenshi/oxidns](https://github.com/svenshi/oxidns)。本分支不发布 Release、不走上游的官方安装脚本、也不保证跟进上游更新，遇到问题请以上游为准；安装方式见下方「构建与安装」。本分支相对上游的改动见文末「本分支的自用改动」。
 
 `luci-app-oxidns` 是 OxiDNS 的 OpenWrt / LuCI 管理插件。安装后，LuCI 会出现 `Services -> OxiDNS` 页面，用来安装 OxiDNS 内核二进制、管理 OpenWrt 服务、编辑配置和查看日志。
 
@@ -13,35 +13,33 @@
 - `luci-app-oxidns`：LuCI 管理页面、rpcd 后端和 OpenWrt init 服务脚本。
 - `luci-i18n-oxidns-zh-cn`：可选简体中文语言包。
 
-## 安装 LuCI 插件
+## 构建与安装
 
-推荐在 OpenWrt 上以 root 用户执行官方安装脚本：
+本分支自用，不执行上游的官方安装脚本（`https://oxidns.org/install.sh`），也不从上游 Release 下载包：先在本仓库构建，再把包装到路由器。
 
-```sh
-curl -fsSL https://oxidns.org/install.sh | sh
-```
-
-如果系统没有 `curl`，也可以使用 `wget`：
+先构建，需要 `tar`、`gzip`、`node`、`sha256sum`：
 
 ```sh
-wget -O- https://oxidns.org/install.sh | sh
+scripts/build-luci-package.sh 0.1.1 dist
 ```
 
-脚本会检测 OpenWrt 包管理器，从 `luci-app-oxidns` Releases 读取最新包，按系统选择 `.ipk` 或 `.apk`，安装 `luci-app-oxidns` 和可选简体中文语言包，并自动重启 `rpcd`。更多脚本选项见 <https://oxidns.org/openwrt>。
+省略版本号时默认取 `Makefile` 里的 `PKG_VERSION`（当前为 `0.1.1`）。产物写在 `dist/`：`luci-app-oxidns` 和 `luci-i18n-oxidns-zh-cn` 各一份 `.ipk` 和 `.apk`，另有 `sha256sums.txt`。
 
-也可以从本仓库 Release 下载对应的 LuCI 包后手动安装：
+把 `dist/` 里的包拷到路由器后安装。使用 `apk` 的 OpenWrt 系统：
 
 ```sh
-opkg install ./luci-app-oxidns_0.1.0-r1_all.ipk
-opkg install ./luci-i18n-oxidns-zh-cn_0.1.0-r1_all.ipk
+apk add --allow-untrusted --no-network ./luci-app-oxidns_0.1.1-r1_all.apk
+apk add --allow-untrusted --no-network ./luci-i18n-oxidns-zh-cn_0.1.1-r1_all.apk
 ```
 
-在使用 `apk` 的 OpenWrt 系统上：
+使用 `opkg` 的 OpenWrt 系统：
 
 ```sh
-apk add --allow-untrusted --no-network ./luci-app-oxidns_0.1.0-r1_all.apk
-apk add --allow-untrusted --no-network ./luci-i18n-oxidns-zh-cn_0.1.0-r1_all.apk
+opkg install ./luci-app-oxidns_0.1.1-r1_all.ipk
+opkg install ./luci-i18n-oxidns-zh-cn_0.1.1-r1_all.ipk
 ```
+
+包版本 `0.1.1` 高于上游的 `v0.1.0`，装到已经装过上游包的机器上属于普通升级，不需要 `--force-reinstall`。
 
 如果安装后菜单没有出现，重启 `rpcd`：
 
@@ -112,7 +110,9 @@ LuCI 会按当前设备 CPU 架构选择 OxiDNS Linux musl release archive，例
 
 ## 本分支的自用改动
 
-相对上游只改了配置页的提示显示（`htdocs/luci-static/resources/view/oxidns/config.js` 与 `po/`），目的是让「校验 / 保存」的结果一眼可见：
+包版本从上游的 `0.1.0` 提升为 `0.1.1`（`Makefile`、CI 工作流与本文档一致），这样构建出来的包版本高于上游的 `v0.1.0`，安装时可以直接覆盖或升级，不需要 `--force-reinstall`。
+
+除版本号外，相对上游只改了配置页的提示显示（`htdocs/luci-static/resources/view/oxidns/config.js` 与 `po/`），目的是让「校验 / 保存」的结果一眼可见：
 
 - 结果面板按状态着色：校验通过（绿）、未生效 / 部分成功（黄）、失败（红）、进行中（灰），每条都有结论标题。
 - 结论同时以页面顶部横幅弹出一条 6 秒提示，滚到配置正文上方也能看见。

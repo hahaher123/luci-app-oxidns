@@ -20,7 +20,7 @@ jobs:
         run: scripts/check.sh
 
       - name: Build LuCI packages
-        run: scripts/build-luci-package.sh 0.1.0 dist
+        run: scripts/build-luci-package.sh 0.1.1 dist
 
       - name: Run integration checks
         run: scripts/integration-check.sh

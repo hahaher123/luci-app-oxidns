@@ -43,7 +43,7 @@ This repository does not contain the OxiDNS Rust core source code, and it does n
 ```sh
 scripts/check.sh
 scripts/integration-check.sh
-scripts/release-check.sh 0.1.0 /tmp/luci-app-oxidns-release-check
+scripts/release-check.sh 0.1.1 /tmp/luci-app-oxidns-release-check
 ```
 
 ## Commit Notes

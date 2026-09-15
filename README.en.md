@@ -2,7 +2,7 @@
 
 Language: [中文](./README.md) | English
 
-> **Source and personal-use notice**: this repository is a personal fork of [svenshi/luci-app-oxidns](https://github.com/svenshi/luci-app-oxidns) used on one home router; the OxiDNS core comes from [svenshi/oxidns](https://github.com/svenshi/oxidns). The install instructions, Release URLs, and official installer script below all point at upstream. This fork publishes no Release, does not promise to track upstream, and is not affiliated with the upstream author. The local differences are listed at the end of this file.
+> **Source and personal-use notice**: this repository is a personal fork of [svenshi/luci-app-oxidns](https://github.com/svenshi/luci-app-oxidns) used on one home router; the OxiDNS core comes from [svenshi/oxidns](https://github.com/svenshi/oxidns). This fork publishes no Release, does not use the upstream official installer script, does not promise to track upstream, and is not affiliated with the upstream author. See "Build And Install" below for how packages are produced. The local differences are listed at the end of this file.
 
 `luci-app-oxidns` is the LuCI management app for OxiDNS on OpenWrt. After installation, LuCI adds `Services -> OxiDNS` pages for installing the OxiDNS core binary, managing the OpenWrt service, editing configuration, and viewing logs.
 
@@ -13,35 +13,33 @@ This app does not embed the OxiDNS core binary and no longer manages a separate 
 - `luci-app-oxidns`: LuCI pages, rpcd backend, and OpenWrt init service script.
 - `luci-i18n-oxidns-zh-cn`: optional Simplified Chinese translation package.
 
-## Install The LuCI App
+## Build And Install
 
-On OpenWrt, the recommended path is the official one-command installer. Run it as root:
+This fork is for personal use: it does not run the upstream official installer (`https://oxidns.org/install.sh`) and does not download packages from upstream Releases. Build locally first, then install the packages on the router.
 
-```sh
-curl -fsSL https://oxidns.org/install.sh | sh
-```
-
-If `curl` is not installed, use `wget`:
+Build first; `tar`, `gzip`, `node`, and `sha256sum` are required:
 
 ```sh
-wget -O- https://oxidns.org/install.sh | sh
+scripts/build-luci-package.sh 0.1.1 dist
 ```
 
-The script detects the OpenWrt package manager, reads the latest package from `luci-app-oxidns` Releases, selects `.ipk` or `.apk` for the system, installs `luci-app-oxidns` plus the optional Simplified Chinese translation package, and restarts `rpcd`. See <https://oxidns.org/openwrt> for more script options.
+Without an explicit version the script uses `PKG_VERSION` from `Makefile` (currently `0.1.1`). Output goes to `dist/`: one `.ipk` and one `.apk` each for `luci-app-oxidns` and `luci-i18n-oxidns-zh-cn`, plus `sha256sums.txt`.
 
-You can also download the LuCI release artifact and install it manually:
+Copy the packages from `dist/` to the router and install them there. On OpenWrt systems using `apk`:
 
 ```sh
-opkg install ./luci-app-oxidns_0.1.0-r1_all.ipk
-opkg install ./luci-i18n-oxidns-zh-cn_0.1.0-r1_all.ipk
+apk add --allow-untrusted --no-network ./luci-app-oxidns_0.1.1-r1_all.apk
+apk add --allow-untrusted --no-network ./luci-i18n-oxidns-zh-cn_0.1.1-r1_all.apk
 ```
 
-On OpenWrt systems using `apk`:
+On OpenWrt systems using `opkg`:
 
 ```sh
-apk add --allow-untrusted --no-network ./luci-app-oxidns_0.1.0-r1_all.apk
-apk add --allow-untrusted --no-network ./luci-i18n-oxidns-zh-cn_0.1.0-r1_all.apk
+opkg install ./luci-app-oxidns_0.1.1-r1_all.ipk
+opkg install ./luci-i18n-oxidns-zh-cn_0.1.1-r1_all.ipk
 ```
+
+Package version `0.1.1` is newer than upstream `v0.1.0`, so installing on a machine that already has the upstream package is a normal upgrade and does not need `--force-reinstall`.
 
 If the menu does not appear after installation, restart `rpcd`:
 
@@ -112,7 +110,9 @@ The router must be able to reach GitHub Releases and release archives directly. 
 
 ## Local Changes In This Fork
 
-Only the configuration page feedback was changed (`htdocs/luci-static/resources/view/oxidns/config.js` and `po/`), to make validate / save results obvious:
+The package version is bumped from upstream `0.1.0` to `0.1.1` (`Makefile`, CI workflows and this document agree), so the built packages are newer than upstream `v0.1.0` and install as a plain upgrade without `--force-reinstall`.
+
+Apart from the version bump, only the configuration page feedback was changed (`htdocs/luci-static/resources/view/oxidns/config.js` and `po/`), to make validate / save results obvious:
 
 - The result is rendered as a coloured panel (green pass, yellow not-applied/partial, red failure, grey in-progress) with a conclusion headline.
 - The same conclusion is also shown as a 6-second banner at the top of the page, so it is visible while scrolled up in the editor.

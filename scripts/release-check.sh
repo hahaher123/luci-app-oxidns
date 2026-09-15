@@ -2,7 +2,7 @@
 
 set -eu
 
-VERSION="${1:-${VERSION:-0.1.0}}"
+VERSION="${1:-${VERSION:-0.1.1}}"
 OUT_DIR="${2:-${OUT_DIR:-dist}}"
 PKG_VERSION="$(printf '%s' "$VERSION" | sed 's/^v//')"
 PKG_BASE="luci-app-oxidns_${PKG_VERSION}-r1_all"
