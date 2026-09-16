@@ -2,7 +2,7 @@
 
 set -eu
 
-node -e "for (const f of ['htdocs/luci-static/resources/view/oxidns/overview.js','htdocs/luci-static/resources/view/oxidns/core.js','htdocs/luci-static/resources/view/oxidns/config.js','htdocs/luci-static/resources/view/oxidns/logs.js','htdocs/luci-static/resources/view/oxidns/settings.js']) new Function(require('fs').readFileSync(f,'utf8'));"
+node -e "for (const f of ['htdocs/luci-static/resources/view/oxidns/overview.js','htdocs/luci-static/resources/view/oxidns/core.js','htdocs/luci-static/resources/view/oxidns/config.js','htdocs/luci-static/resources/view/oxidns/rules.js','htdocs/luci-static/resources/view/oxidns/logs.js','htdocs/luci-static/resources/view/oxidns/settings.js']) new Function(require('fs').readFileSync(f,'utf8'));"
 node -e "for (const f of ['root/usr/share/luci/menu.d/luci-app-oxidns.json','root/usr/share/rpcd/acl.d/luci-app-oxidns.json','root/usr/share/oxidns/targets.json']) JSON.parse(require('fs').readFileSync(f,'utf8'));"
 node <<'NODE'
 const fs = require('fs');
@@ -12,6 +12,7 @@ for (const file of [
 	'htdocs/luci-static/resources/view/oxidns/overview.js',
 	'htdocs/luci-static/resources/view/oxidns/core.js',
 	'htdocs/luci-static/resources/view/oxidns/config.js',
+	'htdocs/luci-static/resources/view/oxidns/rules.js',
 	'htdocs/luci-static/resources/view/oxidns/logs.js',
 	'htdocs/luci-static/resources/view/oxidns/settings.js',
 ]) {
@@ -74,7 +75,7 @@ function walk(dir, out) {
 }
 
 const files = [];
-for (const root of ['htdocs', 'root', 'po', 'scripts', 'Makefile', 'README.md', 'README.en.md']) {
+for (const root of ['htdocs', 'root', 'po', 'scripts', 'Makefile', 'README.md']) {
 	const stat = fs.statSync(root, { throwIfNoEntry: false });
 	if (!stat)
 		continue;

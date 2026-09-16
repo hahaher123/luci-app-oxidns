@@ -1,7 +1,5 @@
 # luci-app-oxidns
 
-语言：中文 | [English](./README.en.md)
-
 > **来源与自用声明**：本仓库是 [svenshi/luci-app-oxidns](https://github.com/svenshi/luci-app-oxidns) 的个人自用分支（fork），仅在自己的路由器上使用；OxiDNS 内核来自 [svenshi/oxidns](https://github.com/svenshi/oxidns)。本分支的 Release 只发在自己的仓库里，不使用上游的官方安装脚本，也不跟上游 Release 混用；不保证跟进上游更新，遇到问题请以上游为准。安装方式见下方「安装」，本分支相对上游的改动见文末「本分支的自用改动」。
 
 `luci-app-oxidns` 是 OxiDNS 的 OpenWrt / LuCI 管理插件。安装后，LuCI 会出现 `Services -> OxiDNS` 页面，用来安装 OxiDNS 内核二进制、管理 OpenWrt 服务、编辑配置和查看日志。
@@ -22,8 +20,8 @@
 Release 里的包是 `noarch`，与设备架构无关，`apk` 和 `opkg` 各一份，另附 `sha256sums.txt`。以 `apk` 系统为例：
 
 ```sh
-curl -fsSLO https://github.com/hahaher123/luci-app-oxidns/releases/download/v0.1.1/luci-app-oxidns_0.1.1-r1_all.apk
-curl -fsSLO https://github.com/hahaher123/luci-app-oxidns/releases/download/v0.1.1/luci-i18n-oxidns-zh-cn_0.1.1-r1_all.apk
+curl -fsSLO https://github.com/hahaher123/luci-app-oxidns/releases/download/v0.1.2/luci-app-oxidns_0.1.2-r1_all.apk
+curl -fsSLO https://github.com/hahaher123/luci-app-oxidns/releases/download/v0.1.2/luci-i18n-oxidns-zh-cn_0.1.2-r1_all.apk
 ```
 
 使用 `opkg` 的系统把文件名换成 `.ipk`。想固定拿最新一版，也可以用 `https://github.com/hahaher123/luci-app-oxidns/releases/latest/download/<文件名>`。
@@ -33,28 +31,28 @@ curl -fsSLO https://github.com/hahaher123/luci-app-oxidns/releases/download/v0.1
 需要 `tar`、`gzip`、`node`、`sha256sum`：
 
 ```sh
-scripts/build-luci-package.sh 0.1.1 dist
+scripts/build-luci-package.sh 0.1.2 dist
 ```
 
-省略版本号时默认取 `Makefile` 里的 `PKG_VERSION`（当前为 `0.1.1`）。产物写在 `dist/`：`luci-app-oxidns` 和 `luci-i18n-oxidns-zh-cn` 各一份 `.ipk` 和 `.apk`，另有 `sha256sums.txt`。
+省略版本号时默认取 `Makefile` 里的 `PKG_VERSION`（当前为 `0.1.2`）。产物写在 `dist/`：`luci-app-oxidns` 和 `luci-i18n-oxidns-zh-cn` 各一份 `.ipk` 和 `.apk`，另有 `sha256sums.txt`。
 
 ### 装到路由器
 
 把包拷到路由器后安装。使用 `apk` 的 OpenWrt 系统：
 
 ```sh
-apk add --allow-untrusted --no-network ./luci-app-oxidns_0.1.1-r1_all.apk
-apk add --allow-untrusted --no-network ./luci-i18n-oxidns-zh-cn_0.1.1-r1_all.apk
+apk add --allow-untrusted --no-network ./luci-app-oxidns_0.1.2-r1_all.apk
+apk add --allow-untrusted --no-network ./luci-i18n-oxidns-zh-cn_0.1.2-r1_all.apk
 ```
 
 使用 `opkg` 的 OpenWrt 系统：
 
 ```sh
-opkg install ./luci-app-oxidns_0.1.1-r1_all.ipk
-opkg install ./luci-i18n-oxidns-zh-cn_0.1.1-r1_all.ipk
+opkg install ./luci-app-oxidns_0.1.2-r1_all.ipk
+opkg install ./luci-i18n-oxidns-zh-cn_0.1.2-r1_all.ipk
 ```
 
-包版本 `0.1.1` 高于上游的 `v0.1.0`，装到已经装过上游包的机器上属于普通升级，不需要 `--force-reinstall`。
+包版本 `0.1.2` 高于上游的 `v0.1.0`，装到已经装过上游包的机器上属于普通升级，不需要 `--force-reinstall`。
 
 如果安装后菜单没有出现，重启 `rpcd`：
 
@@ -93,6 +91,7 @@ LuCI 会按当前设备 CPU 架构选择 OxiDNS Linux musl release archive，例
 - `Overview`：查看内核状态、服务状态、WebUI 入口、配置路径和日志状态。
 - `Core`：首次安装、上传安装、修复重装或删除 OxiDNS 内核二进制。
 - `Configuration`：查看、保存和校验配置文件。
+- `Rule Files`：编辑 OxiDNS provider 读取的规则列表文件（`blocklist.txt`、`whitelist.txt`、`greylist.txt`、`ddnslist.txt`、`hosts.txt`、`redirect.txt` 以及规则目录下其它 `.txt`）。
 - `Logs`：查看运行日志，支持刷新和暂停。
 - `Settings`：设置 core repository、bundle、代理、配置路径和工作目录。
 
@@ -101,6 +100,7 @@ LuCI 会按当前设备 CPU 架构选择 OxiDNS Linux musl release archive，例
 - 二进制：`/usr/bin/oxidns`
 - WebUI：`/usr/share/oxidns/webui`
 - 配置：`/etc/oxidns/config.yaml`
+- 规则目录：`/etc/oxidns/rule`
 - 工作目录：`/var/lib/oxidns`
 - 服务脚本：`/etc/init.d/oxidns`
 
@@ -125,9 +125,20 @@ LuCI 会按当前设备 CPU 架构选择 OxiDNS Linux musl release archive，例
 
 ## 本分支的自用改动
 
-包版本从上游的 `0.1.0` 提升为 `0.1.1`（`Makefile`、CI 工作流与本文档一致），这样构建出来的包版本高于上游的 `v0.1.0`，安装时可以直接覆盖或升级，不需要 `--force-reinstall`。
+包版本从上游的 `0.1.0` 提升为 `0.1.2`（`Makefile`、CI 工作流与本文档一致），这样构建出来的包版本高于上游的 `v0.1.0`，安装时可以直接覆盖或升级，不需要 `--force-reinstall`。
 
-除版本号外，相对上游只改了配置页的提示显示（`htdocs/luci-static/resources/view/oxidns/config.js` 与 `po/`），目的是让「校验 / 保存」的结果一眼可见：
+相对上游有两处改动：配置页的提示显示，以及新增的规则文件编辑页。两者的文案都已进 `po/`。
+
+**一、新增 `Rule Files` 页面**（`htdocs/luci-static/resources/view/oxidns/rules.js`，后端 `rules_list` / `rules_read` / `rules_save`），用来编辑 OxiDNS provider 读取的规则列表文件（默认目录 `/etc/oxidns/rule`）：
+
+- 自动列出规则目录下所有 `.txt`，每项带大小，选中后显示行数与修改时间。
+- 单一编辑框直接改内容，配 `Save`、`Save & Restart` 和 `Reload`（丢弃未保存修改）。
+- 保存时做 mtime 冲突检测（文件在载入后被外部改过就拒绝写入）、写前备份（保留最近 10 份）、统一成 `LF`，并沿用原文件权限。
+- 文件名与路径受校验：只允许规则目录内的单层 `.txt`，拒绝 `..` 与子目录。
+- 规则目录可以用 UCI 覆盖：`uci set oxidns.main.rules_dir=/your/path`。
+- OxiDNS 只在 provider 载入时读取规则文件，所以改完要 `Save & Restart`（或用 OxiDNS 自身的 reload）才对运行中的服务生效。
+
+**二、配置页的提示显示**（`htdocs/luci-static/resources/view/oxidns/config.js`），目的是让「校验 / 保存」的结果一眼可见：
 
 - 结果面板按状态着色：校验通过（绿）、未生效 / 部分成功（黄）、失败（红）、进行中（灰），每条都有结论标题。
 - 结论同时以页面顶部横幅弹出一条 6 秒提示，滚到配置正文上方也能看见。

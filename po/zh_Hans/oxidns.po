@@ -10,6 +10,15 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
+msgid ""
+msgstr ""
+
+msgid ""
+msgstr ""
+
+msgid ""
+msgstr ""
+
 msgid "A token is currently configured. Enter a new value to replace it."
 msgstr "当前已配置 Token。输入新值可替换现有 Token。"
 
@@ -402,3 +411,78 @@ msgstr "YAML"
 
 msgid "Yes"
 msgstr "是"
+
+msgid "Discard unsaved changes and load another file?"
+msgstr "有未保存的修改，确定放弃并切换到另一个文件？"
+
+msgid "Discard unsaved changes and reload this file?"
+msgstr "有未保存的修改，确定放弃并重新载入该文件？"
+
+msgid "Edit the rule list files that OxiDNS providers read, then restart the service to apply the changes."
+msgstr "编辑 OxiDNS provider 读取的规则列表文件，改完需要重启服务才会生效。"
+
+msgid "Editing"
+msgstr "正在编辑"
+
+msgid "Install the OxiDNS core before editing the rule files."
+msgstr "请先安装 OxiDNS 内核，然后才能编辑规则文件。"
+
+msgid "Lines"
+msgstr "行数"
+
+msgid "Loaded rule file"
+msgstr "已载入规则文件"
+
+msgid "Loading rule file..."
+msgstr "正在载入规则文件..."
+
+msgid "Modified"
+msgstr "修改时间"
+
+msgid "No rule files were found in the rule directory."
+msgstr "规则目录下没有找到任何规则文件。"
+
+msgid "One rule per line. Lines starting with # are ignored."
+msgstr "每行一条规则，以 # 开头的行会被忽略。"
+
+msgid "OxiDNS reads rule files when a provider is loaded. Use Save & Restart to apply the changes."
+msgstr "OxiDNS 只在 provider 载入时读取规则文件。要让改动生效请使用「保存并重启」。"
+
+msgid "OxiDNS Rule Files"
+msgstr "OxiDNS 规则文件"
+
+msgid "Reload"
+msgstr "重新载入"
+
+msgid "Rule directory"
+msgstr "规则目录"
+
+msgid "Rule file"
+msgstr "规则文件"
+
+msgid "Rule file saved and service restarted"
+msgstr "规则文件已保存，服务已重启"
+
+msgid "Rule Files"
+msgstr "规则文件"
+
+msgid "Saving rule file..."
+msgstr "正在保存规则文件..."
+
+msgid "Size"
+msgstr "大小"
+
+msgid "The rule file was modified on disk since it was loaded. Reload it before saving again."
+msgstr "该规则文件在载入后被外部修改过，请先重新载入再保存。"
+
+msgid "There are unsaved changes"
+msgstr "有未保存的修改"
+
+msgid "Unable to load the rule file"
+msgstr "无法载入规则文件"
+
+msgid "Unable to load the rule file."
+msgstr "无法载入该规则文件。"
+
+msgid "Unable to load the rule files."
+msgstr "无法载入规则文件列表。"

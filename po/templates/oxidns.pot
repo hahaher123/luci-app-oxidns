@@ -26,19 +26,19 @@ msgstr ""
 msgid "Build"
 msgstr ""
 
-msgid "Cancel"
+msgid "Bundle"
 msgstr ""
 
-msgid "Bundle"
+msgid "Cancel"
 msgstr ""
 
 msgid "Clear"
 msgstr ""
 
-msgid "Clear configured GitHub token"
+msgid "Clear configured download proxy"
 msgstr ""
 
-msgid "Clear configured download proxy"
+msgid "Clear configured GitHub token"
 msgstr ""
 
 msgid "Close"
@@ -74,9 +74,6 @@ msgstr ""
 msgid "Core"
 msgstr ""
 
-msgid "Core Status"
-msgstr ""
-
 msgid "Core bundle"
 msgstr ""
 
@@ -89,25 +86,43 @@ msgstr ""
 msgid "Core repository"
 msgstr ""
 
+msgid "Core Status"
+msgstr ""
+
 msgid "Delete configuration file"
 msgstr ""
 
 msgid "Delete working directory"
 msgstr ""
 
+msgid "Details"
+msgstr ""
+
 msgid "Disable"
 msgstr ""
 
-msgid "Download proxy"
+msgid "Discard unsaved changes and load another file?"
+msgstr ""
+
+msgid "Discard unsaved changes and reload this file?"
 msgstr ""
 
 msgid "Download core archive"
 msgstr ""
 
+msgid "Download proxy"
+msgstr ""
+
 msgid "Download release metadata"
 msgstr ""
 
+msgid "Edit the rule list files that OxiDNS providers read, then restart the service to apply the changes."
+msgstr ""
+
 msgid "Edit, validate, and save the full OxiDNS YAML configuration file."
+msgstr ""
+
+msgid "Editing"
 msgstr ""
 
 msgid "Enable"
@@ -137,13 +152,16 @@ msgstr ""
 msgid "Install core files"
 msgstr ""
 
+msgid "Install or repair the OxiDNS core binary. Runtime upgrades are handled by OxiDNS itself."
+msgstr ""
+
 msgid "Install the OxiDNS core before editing the configuration."
 msgstr ""
 
-msgid "Install the OxiDNS core before using service controls."
+msgid "Install the OxiDNS core before editing the rule files."
 msgstr ""
 
-msgid "Install or repair the OxiDNS core binary. Runtime upgrades are handled by OxiDNS itself."
+msgid "Install the OxiDNS core before using service controls."
 msgstr ""
 
 msgid "Installed"
@@ -153,6 +171,15 @@ msgid "Installing OxiDNS core..."
 msgstr ""
 
 msgid "Installing uploaded OxiDNS core..."
+msgstr ""
+
+msgid "Lines"
+msgstr ""
+
+msgid "Loaded rule file"
+msgstr ""
+
+msgid "Loading rule file..."
 msgstr ""
 
 msgid "Logs"
@@ -167,16 +194,25 @@ msgstr ""
 msgid "Manage the OxiDNS runtime, service, configuration, and logs from LuCI."
 msgstr ""
 
+msgid "Modified"
+msgstr ""
+
 msgid "No"
+msgstr ""
+
+msgid "No rule files were found in the rule directory."
 msgstr ""
 
 msgid "Not installed"
 msgstr ""
 
-msgid "Optional. The token is never shown after saving."
+msgid "One rule per line. Lines starting with # are ignored."
 msgstr ""
 
 msgid "Open WebUI"
+msgstr ""
+
+msgid "Optional. The token is never shown after saving."
 msgstr ""
 
 msgid "Overview"
@@ -191,12 +227,6 @@ msgstr ""
 msgid "OxiDNS Core"
 msgstr ""
 
-msgid "OxiDNS Logs"
-msgstr ""
-
-msgid "OxiDNS Settings"
-msgstr ""
-
 msgid "OxiDNS is already disabled on boot."
 msgstr ""
 
@@ -207,6 +237,18 @@ msgid "OxiDNS is already running."
 msgstr ""
 
 msgid "OxiDNS is already stopped."
+msgstr ""
+
+msgid "OxiDNS Logs"
+msgstr ""
+
+msgid "OxiDNS reads rule files when a provider is loaded. Use Save & Restart to apply the changes."
+msgstr ""
+
+msgid "OxiDNS Rule Files"
+msgstr ""
+
+msgid "OxiDNS Settings"
 msgstr ""
 
 msgid "Path"
@@ -222,6 +264,9 @@ msgid "Reason"
 msgstr ""
 
 msgid "Refresh"
+msgstr ""
+
+msgid "Reload"
 msgstr ""
 
 msgid "Remove Core"
@@ -251,6 +296,18 @@ msgstr ""
 msgid "Resume"
 msgstr ""
 
+msgid "Rule directory"
+msgstr ""
+
+msgid "Rule file"
+msgstr ""
+
+msgid "Rule file saved and service restarted"
+msgstr ""
+
+msgid "Rule Files"
+msgstr ""
+
 msgid "Running"
 msgstr ""
 
@@ -278,7 +335,13 @@ msgstr ""
 msgid "Saving configuration..."
 msgstr ""
 
+msgid "Saving rule file..."
+msgstr ""
+
 msgid "Saving settings..."
+msgstr ""
+
+msgid "Select release archive"
 msgstr ""
 
 msgid "Service"
@@ -299,7 +362,7 @@ msgstr ""
 msgid "Settings saved."
 msgstr ""
 
-msgid "Select release archive"
+msgid "Size"
 msgstr ""
 
 msgid "Stage"
@@ -323,28 +386,43 @@ msgstr ""
 msgid "Target"
 msgstr ""
 
-msgid "Details"
+msgid "The content changed since it was last checked"
 msgstr ""
 
-msgid "The content changed since it was last checked"
+msgid "The rule file was modified on disk since it was loaded. Reload it before saving again."
 msgstr ""
 
 msgid "The running service still uses the previous configuration. Use Save & Restart to apply the changes."
 msgstr ""
 
-msgid "Unable to query OxiDNS status"
+msgid "There are unsaved changes"
 msgstr ""
 
 msgid "Unable to load configuration."
 msgstr ""
 
+msgid "Unable to load the rule file"
+msgstr ""
+
+msgid "Unable to load the rule file."
+msgstr ""
+
+msgid "Unable to load the rule files."
+msgstr ""
+
+msgid "Unable to query OxiDNS status"
+msgstr ""
+
 msgid "Unavailable"
 msgstr ""
 
-msgid "Upload has been cancelled"
+msgid "Unpack core archive"
 msgstr ""
 
 msgid "Upload Core"
+msgstr ""
+
+msgid "Upload has been cancelled"
 msgstr ""
 
 msgid "Validate"
@@ -357,9 +435,6 @@ msgid "Validate uploaded core"
 msgstr ""
 
 msgid "Validating configuration..."
-msgstr ""
-
-msgid "Unpack core archive"
 msgstr ""
 
 msgid "Validation failed"
@@ -377,6 +452,9 @@ msgstr ""
 msgid "View recent OxiDNS entries from OpenWrt logread."
 msgstr ""
 
+msgid "Waiting for command output..."
+msgstr ""
+
 msgid "WebUI"
 msgstr ""
 
@@ -384,9 +462,6 @@ msgid "WebUI files are not installed."
 msgstr ""
 
 msgid "WebUI listens on loopback only. Configure the HTTP listen address to a LAN-reachable address, or use an SSH tunnel."
-msgstr ""
-
-msgid "Waiting for command output..."
 msgstr ""
 
 msgid "Working directory"

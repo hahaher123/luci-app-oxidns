@@ -8,8 +8,8 @@ This repository does not contain the OxiDNS Rust core source code, and it does n
 
 ## Main Responsibilities
 
-- LuCI pages: overview, core binary management, configuration, logs, and settings.
-- rpcd backend: status, service control, boot enablement, core install/reinstall/upload/remove actions, config read/write/validate, log access, and LuCI integration settings.
+- LuCI pages: overview, core binary management, configuration, rule file editing, logs, and settings.
+- rpcd backend: status, service control, boot enablement, core install/reinstall/upload/remove actions, config read/write/validate, rule file read/write, log access, and LuCI integration settings.
 - Target mapping contract files used to align supported OpenWrt architectures with OxiDNS release targets.
 - LuCI package builds: local scripts can produce `luci-app-oxidns` `ipk` and `apk` artifacts.
 - Internationalization: Simplified Chinese translations are shipped as `luci-i18n-oxidns-zh-cn`.
@@ -24,6 +24,7 @@ This repository does not contain the OxiDNS Rust core source code, and it does n
 - `root/usr/share/oxidns/targets.json` is an interface contract for mapping OpenWrt device architectures to OxiDNS release targets.
 - Frontend pages must call system operations through the rpcd backend. Do not perform shell/system actions directly in LuCI JavaScript.
 - The configuration page is a full YAML editor. It may edit any part of the OxiDNS config, including plugin configuration, but must validate through the rpcd backend before saving.
+- The rule files page edits rule list files through the rpcd backend only. Writes must stay inside the rule directory (default `/etc/oxidns/rule`, overridable with `oxidns.main.rules_dir`), accept only single-level `.txt` names, and never escape it.
 - GitHub tokens and other secrets must not be echoed to UI, logs, or RPC error messages.
 - Development must consider both OpenWrt LuCI package environments: `opkg` / `ipk` on older releases and `apk` / `apk` packages on newer releases. LuCI app package build, install, upgrade, removal, validation, and LuCI Software upload behavior should remain compatible with both unless a change explicitly scopes one environment out.
 
@@ -43,7 +44,7 @@ This repository does not contain the OxiDNS Rust core source code, and it does n
 ```sh
 scripts/check.sh
 scripts/integration-check.sh
-scripts/release-check.sh 0.1.1 /tmp/luci-app-oxidns-release-check
+scripts/release-check.sh 0.1.2 /tmp/luci-app-oxidns-release-check
 ```
 
 ## Commit Notes
