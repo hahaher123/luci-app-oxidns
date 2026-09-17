@@ -26,6 +26,8 @@ Release tag 为 `v<PKG_VERSION>-r<PKG_RELEASE>`，与包文件名里的完整版
 
 版本号约定：修 bug / 调整已安装文件只升 `PKG_RELEASE`；新增功能才升 `PKG_VERSION`（同时把 `PKG_RELEASE` 重置为 `1`）；只改文档或 CI 不动版本号。
 
+发布规则：`Makefile` 里的版本号变更推到 `main` 后自动编译并发布 Release，Release 说明取自触发该次发布的 commit 信息（约定 commit 描述本次变动内容）；tag 已存在时自动跳过，不会覆盖。也可在 Actions 手动 dispatch（可显式指定版本）。
+
 也可以自己构建（需要 `tar`、`gzip`、`node`、`sha256sum`）：
 
 ```sh

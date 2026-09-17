@@ -1,10 +1,17 @@
 name: Release
 
-# tag 规则：v<PKG_VERSION>-r<PKG_RELEASE>（例如 v0.1.2-r2），与 Makefile 里的包版本
-# 一一对应。scripts/release-check.sh 会校验两者一致，不一致直接失败；因此同修一个
-# 上游版本下的 bug，只升 PKG_RELEASE 就能发出新 Release，而不是覆盖上一个。
+# 发布规则：Makefile 里的 PKG_VERSION / PKG_RELEASE 变更并推到 main 后，
+# 自动编译并发布 Release（tag = v<PKG_VERSION>-r<PKG_RELEASE>，如 v0.1.2-r2），
+# Release 说明取自触发这次变更的 commit 信息（即「commit 为本次变动内容」）。
+# tag 已存在时跳过（幂等，不会覆盖已有 Release）。
+# scripts/release-check.sh 会校验 tag 与 Makefile 一致，不一致直接失败。
+# 手动 dispatch（可显式给版本）与推 tag 触发保留。
 on:
   push:
+    branches:
+      - main
+    paths:
+      - "Makefile"
     tags:
       - "v*"
   workflow_dispatch:
@@ -22,6 +29,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@v6
         with:
@@ -34,31 +43,60 @@ jobs:
           INPUT_VERSION: ${{ inputs.version }}
         run: |
           set -euo pipefail
-          # 显式给版本（v0.1.2 或 v0.1.2-r2）就用它；留空则以 Makefile 为准 ——
-          # Makefile 是包版本的唯一事实源，release-check.sh 会再校验一次一致性。
-          if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
-            if [ -n "${INPUT_VERSION}" ]; then
-              value="${INPUT_VERSION}"
-            else
-              v="$(sed -n 's/^PKG_VERSION:=//p' Makefile | head -n1)"
-              r="$(sed -n 's/^PKG_RELEASE:=//p' Makefile | head -n1)"
-              value="v${v}-r${r}"
-            fi
+          # 显式给版本（v0.1.2 或 v0.1.2-r2）就用它；其余情况（push、dispatch 留空、推 tag）
+          # 一律以 Makefile 为准 —— Makefile 是包版本的唯一事实源，release-check.sh 会再校验一次。
+          # 推 tag 的场景 checkout 在 tag commit 上，Makefile 与 tag 一致，两种取法等价。
+          if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ] && [ -n "${INPUT_VERSION}" ]; then
+            value="${INPUT_VERSION}"
           else
-            value="${GITHUB_REF_NAME}"
+            v="$(sed -n 's/^PKG_VERSION:=//p' Makefile | head -n1)"
+            r="$(sed -n 's/^PKG_RELEASE:=//p' Makefile | head -n1)"
+            value="v${v}-r${r}"
           fi
           echo "value=${value}" >> "$GITHUB_OUTPUT"
           echo "tag: ${value}"
 
+      - name: Skip when the tag already exists
+        id: guard
+        shell: bash
+        env:
+          TAG: ${{ steps.version.outputs.value }}
+        run: |
+          set -euo pipefail
+          if git ls-remote --exit-code --tags origin "refs/tags/${TAG}" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "tag ${TAG} already exists, nothing to release"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "tag ${TAG} is new, proceeding"
+          fi
+
+      - name: Collect release notes from the commit message
+        id: body
+        if: steps.guard.outputs.exists == 'false'
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Release 说明 = 最近一次改动 Makefile（即版本变更）的 commit 信息全文
+          # （约定：commit 描述本次变动内容）。补发旧版本时也能取到对应的变更说明。
+          {
+            echo "body<<RELEASE_NOTES_EOF"
+            git log -1 --pretty=format:'%B' -- Makefile
+            echo ""
+            echo "RELEASE_NOTES_EOF"
+          } >> "$GITHUB_OUTPUT"
+
       - name: Run release checks and build packages
+        if: steps.guard.outputs.exists == 'false'
         run: scripts/release-check.sh "${{ steps.version.outputs.value }}" dist
 
       - name: Publish release
+        if: steps.guard.outputs.exists == 'false'
         uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ steps.version.outputs.value }}
+          body: ${{ steps.body.outputs.body }}
           files: |
             dist/*.ipk
             dist/*.apk
             dist/sha256sums.txt
-          generate_release_notes: true
