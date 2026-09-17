@@ -16,13 +16,13 @@ OxiDNS 的 OpenWrt / LuCI 管理插件。安装后 LuCI 出现 `Services -> OxiD
 **1. 取包** —— 从本仓库 Release 下载：
 
 ```sh
-curl -fsSLO https://github.com/hahaher123/luci-app-oxidns/releases/download/v0.1.2/luci-app-oxidns_0.1.2-r1_all.apk
-curl -fsSLO https://github.com/hahaher123/luci-app-oxidns/releases/download/v0.1.2/luci-i18n-oxidns-zh-cn_0.1.2-r1_all.apk
+curl -fsSLO https://github.com/hahaher123/luci-app-oxidns/releases/download/v0.1.3-r1/luci-app-oxidns_0.1.3-r1_all.apk
+curl -fsSLO https://github.com/hahaher123/luci-app-oxidns/releases/download/v0.1.3-r1/luci-i18n-oxidns-zh-cn_0.1.3-r1_all.apk
 ```
 
 `opkg` 系统把 `.apk` 换成 `.ipk`；想固定取最新一版可用 `releases/latest/download/<文件名>`；校验和见 Release 里的 `sha256sums.txt`。
 
-Release tag 为 `v<PKG_VERSION>-r<PKG_RELEASE>`，与包文件名里的完整版本号一一对应（如 tag `v0.1.2-r1` ↔ 包 `luci-app-oxidns_0.1.2-r1_all.apk`）。上面示例里的 `v0.1.2` 是本规则生效前的旧格式 tag，资产就是 `0.1.2-r1` 的那两个包；此后新版本一律用带 `-r` 的格式。
+Release tag 为 `v<PKG_VERSION>-r<PKG_RELEASE>`，与包文件名里的完整版本号一一对应（如 tag `v0.1.3-r1` ↔ 包 `luci-app-oxidns_0.1.3-r1_all.apk`）。历史上 `v0.1.2` 这类不带 `-r` 的 tag 是旧规则产物，资产是 `0.1.2-r1` 的那两个包。
 
 版本号约定：修 bug / 调整已安装文件只升 `PKG_RELEASE`；新增功能才升 `PKG_VERSION`（同时把 `PKG_RELEASE` 重置为 `1`）；只改文档或 CI 不动版本号。
 
@@ -34,18 +34,18 @@ Release tag 为 `v<PKG_VERSION>-r<PKG_RELEASE>`，与包文件名里的完整版
 scripts/build-luci-package.sh '' dist
 ```
 
-留空参数时默认取 `Makefile` 里的 `PKG_VERSION` / `PKG_RELEASE`，产物写在 `dist/`；也可以显式给版本与修订号：`scripts/build-luci-package.sh 0.1.2 dist 2`。
+留空参数时默认取 `Makefile` 里的 `PKG_VERSION` / `PKG_RELEASE`，产物写在 `dist/`；也可以显式给版本与修订号：`scripts/build-luci-package.sh 0.1.3 dist 2`。
 
 **2. 装到路由器** —— 把包拷上去后：
 
 ```sh
 # apk 系统
-apk add --allow-untrusted --no-network ./luci-app-oxidns_0.1.2-r1_all.apk
-apk add --allow-untrusted --no-network ./luci-i18n-oxidns-zh-cn_0.1.2-r1_all.apk
+apk add --allow-untrusted --no-network ./luci-app-oxidns_0.1.3-r1_all.apk
+apk add --allow-untrusted --no-network ./luci-i18n-oxidns-zh-cn_0.1.3-r1_all.apk
 
 # opkg 系统
-opkg install ./luci-app-oxidns_0.1.2-r1_all.ipk
-opkg install ./luci-i18n-oxidns-zh-cn_0.1.2-r1_all.ipk
+opkg install ./luci-app-oxidns_0.1.3-r1_all.ipk
+opkg install ./luci-i18n-oxidns-zh-cn_0.1.3-r1_all.ipk
 ```
 
 本分支包版本 `0.1.3` 高于上游 `v0.1.0`，装到已装过上游包的机器上属于普通升级，不需要 `--force-reinstall`。
