@@ -2,11 +2,42 @@
 
 set -eu
 
-VERSION="${1:-${VERSION:-0.1.2}}"
+# 用法: release-check.sh [version] [out-dir]
+#   version  形如 v0.1.2 或 v0.1.2-r2；留空则读 Makefile 的 PKG_VERSION / PKG_RELEASE
+#   out-dir  产物目录，默认 dist
+#
+# 传入的版本必须与 Makefile 一致，否则直接失败：包版本只有一处事实源
+# （Makefile），tag 与它脱节时校验会拿错文件名、把好产物判成坏的。
+ARG_VERSION="${1:-${VERSION:-}}"
 OUT_DIR="${2:-${OUT_DIR:-dist}}"
-PKG_VERSION="$(printf '%s' "$VERSION" | sed 's/^v//')"
-PKG_BASE="luci-app-oxidns_${PKG_VERSION}-r1_all"
-I18N_BASE="luci-i18n-oxidns-zh-cn_${PKG_VERSION}-r1_all"
+
+MAKEFILE="${PKG_MAKEFILE:-Makefile}"
+MK_VERSION="$(sed -n 's/^PKG_VERSION:=//p' "$MAKEFILE" | head -n 1)"
+MK_RELEASE="$(sed -n 's/^PKG_RELEASE:=//p' "$MAKEFILE" | head -n 1)"
+
+if [ -n "$ARG_VERSION" ]; then
+	PKG_VERSION="$(printf '%s' "$ARG_VERSION" | sed -e 's/^v//' -e 's/-r[0-9][0-9]*$//')"
+	PKG_RELEASE="$(printf '%s' "$ARG_VERSION" | sed -n 's/.*-r\([0-9][0-9]*\)$/\1/p')"
+	[ -n "$PKG_RELEASE" ] || PKG_RELEASE="$MK_RELEASE"
+else
+	PKG_VERSION="$MK_VERSION"
+	PKG_RELEASE="$MK_RELEASE"
+fi
+
+if [ -z "$PKG_VERSION" ] || [ -z "$PKG_RELEASE" ]; then
+	printf 'could not determine PKG_VERSION/PKG_RELEASE (version=%s release=%s)\n' \
+		"$PKG_VERSION" "$PKG_RELEASE" >&2
+	exit 1
+fi
+
+if [ "$PKG_VERSION" != "$MK_VERSION" ] || [ "$PKG_RELEASE" != "$MK_RELEASE" ]; then
+	printf 'version mismatch: requested %s-r%s, but %s declares %s-r%s\n' \
+		"$PKG_VERSION" "$PKG_RELEASE" "$MAKEFILE" "$MK_VERSION" "$MK_RELEASE" >&2
+	exit 1
+fi
+
+PKG_BASE="luci-app-oxidns_${PKG_VERSION}-r${PKG_RELEASE}_all"
+I18N_BASE="luci-i18n-oxidns-zh-cn_${PKG_VERSION}-r${PKG_RELEASE}_all"
 
 need_cmd() {
 	command -v "$1" >/dev/null 2>&1 || {
@@ -72,7 +103,7 @@ need_cmd tar
 
 scripts/check.sh
 scripts/integration-check.sh
-scripts/build-luci-package.sh "$VERSION" "$OUT_DIR"
+scripts/build-luci-package.sh "$PKG_VERSION" "$OUT_DIR" "$PKG_RELEASE"
 
 tar_has_member "$OUT_DIR/${PKG_BASE}.ipk" control.tar.gz
 tar_has_member "$OUT_DIR/${PKG_BASE}.ipk" data.tar.gz
@@ -105,4 +136,4 @@ tar_has_member "$OUT_DIR/${I18N_BASE}.apk" .post-install
 tar_has_member "$OUT_DIR/${I18N_BASE}.apk" .post-upgrade
 (cd "$OUT_DIR" && sha256sum -c sha256sums.txt)
 
-printf 'Release check passed for %s in %s\n' "$VERSION" "$OUT_DIR"
+printf 'Release check passed for %s-r%s in %s\n' "$PKG_VERSION" "$PKG_RELEASE" "$OUT_DIR"

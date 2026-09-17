@@ -1,5 +1,8 @@
 name: Release
 
+# tag 规则：v<PKG_VERSION>-r<PKG_RELEASE>（例如 v0.1.2-r2），与 Makefile 里的包版本
+# 一一对应。scripts/release-check.sh 会校验两者一致，不一致直接失败；因此同修一个
+# 上游版本下的 bug，只升 PKG_RELEASE 就能发出新 Release，而不是覆盖上一个。
 on:
   push:
     tags:
@@ -7,9 +10,9 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: Version to package, for example v0.1.2
-        required: true
-        default: v0.1.2
+        description: '要发布的版本（v0.1.2 或 v0.1.2-r2）；留空则按 Makefile 的 PKG_VERSION/PKG_RELEASE 生成'
+        required: false
+        default: ''
 
 permissions:
   contents: write
@@ -27,13 +30,25 @@ jobs:
       - name: Resolve version
         id: version
         shell: bash
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
         run: |
           set -euo pipefail
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            echo "value=${{ inputs.version }}" >> "$GITHUB_OUTPUT"
+          # 显式给版本（v0.1.2 或 v0.1.2-r2）就用它；留空则以 Makefile 为准 ——
+          # Makefile 是包版本的唯一事实源，release-check.sh 会再校验一次一致性。
+          if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
+            if [ -n "${INPUT_VERSION}" ]; then
+              value="${INPUT_VERSION}"
+            else
+              v="$(sed -n 's/^PKG_VERSION:=//p' Makefile | head -n1)"
+              r="$(sed -n 's/^PKG_RELEASE:=//p' Makefile | head -n1)"
+              value="v${v}-r${r}"
+            fi
           else
-            echo "value=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+            value="${GITHUB_REF_NAME}"
           fi
+          echo "value=${value}" >> "$GITHUB_OUTPUT"
+          echo "tag: ${value}"
 
       - name: Run release checks and build packages
         run: scripts/release-check.sh "${{ steps.version.outputs.value }}" dist

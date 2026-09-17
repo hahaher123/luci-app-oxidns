@@ -22,13 +22,17 @@ curl -fsSLO https://github.com/hahaher123/luci-app-oxidns/releases/download/v0.1
 
 `opkg` 系统把 `.apk` 换成 `.ipk`；想固定取最新一版可用 `releases/latest/download/<文件名>`；校验和见 Release 里的 `sha256sums.txt`。
 
+Release tag 为 `v<PKG_VERSION>-r<PKG_RELEASE>`，与包文件名里的完整版本号一一对应（如 tag `v0.1.2-r1` ↔ 包 `luci-app-oxidns_0.1.2-r1_all.apk`）。上面示例里的 `v0.1.2` 是本规则生效前的旧格式 tag，资产就是 `0.1.2-r1` 的那两个包；此后新版本一律用带 `-r` 的格式。
+
+版本号约定：修 bug / 调整已安装文件只升 `PKG_RELEASE`；新增功能才升 `PKG_VERSION`（同时把 `PKG_RELEASE` 重置为 `1`）；只改文档或 CI 不动版本号。
+
 也可以自己构建（需要 `tar`、`gzip`、`node`、`sha256sum`）：
 
 ```sh
-scripts/build-luci-package.sh 0.1.2 dist
+scripts/build-luci-package.sh '' dist
 ```
 
-省略版本号时默认取 `Makefile` 里的 `PKG_VERSION`，产物写在 `dist/`。
+留空参数时默认取 `Makefile` 里的 `PKG_VERSION` / `PKG_RELEASE`，产物写在 `dist/`；也可以显式给版本与修订号：`scripts/build-luci-package.sh 0.1.2 dist 2`。
 
 **2. 装到路由器** —— 把包拷上去后：
 

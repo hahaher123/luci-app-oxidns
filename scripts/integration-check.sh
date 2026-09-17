@@ -201,35 +201,40 @@ EOF
 printf '%s' '{"limit":"20"}' | root/usr/libexec/rpcd/luci.oxidns call logs_recent | json_ok "v.ok === true && v.source === 'logread' && Array.isArray(v.lines) && !('entries' in v)"
 
 DIST_DIR="$(mktemp -d "${TMPDIR:-/tmp}/luci-app-oxidns-dist.XXXXXX")"
-scripts/build-luci-package.sh 0.1.2 "$DIST_DIR" >/dev/null
-tar_has_member "$DIST_DIR/luci-app-oxidns_0.1.2-r1_all.ipk" control.tar.gz
-tar_has_member "$DIST_DIR/luci-app-oxidns_0.1.2-r1_all.ipk" data.tar.gz
-tar_nested_has_member "$DIST_DIR/luci-app-oxidns_0.1.2-r1_all.ipk" control.tar.gz postinst
-tar_nested_has_member "$DIST_DIR/luci-app-oxidns_0.1.2-r1_all.ipk" control.tar.gz postrm
-tar_nested_has_member "$DIST_DIR/luci-app-oxidns_0.1.2-r1_all.ipk" data.tar.gz etc/init.d/oxidns
-tar_has_member "$DIST_DIR/luci-i18n-oxidns-zh-cn_0.1.2-r1_all.ipk" control.tar.gz
-tar_has_member "$DIST_DIR/luci-i18n-oxidns-zh-cn_0.1.2-r1_all.ipk" data.tar.gz
-tar_nested_has_member "$DIST_DIR/luci-i18n-oxidns-zh-cn_0.1.2-r1_all.ipk" control.tar.gz postinst
-tar_has_member "$DIST_DIR/luci-app-oxidns_0.1.2-r1_all.apk" .PKGINFO
-tar_member_contains "$DIST_DIR/luci-app-oxidns_0.1.2-r1_all.apk" .PKGINFO '^arch = noarch$'
-tar_member_contains "$DIST_DIR/luci-app-oxidns_0.1.2-r1_all.apk" .PKGINFO '^datahash = [0-9a-f][0-9a-f]*$'
-apk_data_has_checksum "$DIST_DIR/luci-app-oxidns_0.1.2-r1_all.apk"
-tar_has_member "$DIST_DIR/luci-app-oxidns_0.1.2-r1_all.apk" etc
-tar_has_member "$DIST_DIR/luci-app-oxidns_0.1.2-r1_all.apk" etc/config
-tar_has_member "$DIST_DIR/luci-app-oxidns_0.1.2-r1_all.apk" usr/share/luci/menu.d
-tar_has_member "$DIST_DIR/luci-app-oxidns_0.1.2-r1_all.apk" www/luci-static/resources/view/oxidns
-tar_has_member "$DIST_DIR/luci-app-oxidns_0.1.2-r1_all.apk" usr/libexec/rpcd/luci.oxidns
-tar_has_member "$DIST_DIR/luci-app-oxidns_0.1.2-r1_all.apk" etc/init.d/oxidns
-tar_has_member "$DIST_DIR/luci-app-oxidns_0.1.2-r1_all.apk" .post-install
-tar_has_member "$DIST_DIR/luci-app-oxidns_0.1.2-r1_all.apk" .post-upgrade
-tar_has_member "$DIST_DIR/luci-app-oxidns_0.1.2-r1_all.apk" .post-deinstall
-tar_has_member "$DIST_DIR/luci-i18n-oxidns-zh-cn_0.1.2-r1_all.apk" .PKGINFO
-tar_member_contains "$DIST_DIR/luci-i18n-oxidns-zh-cn_0.1.2-r1_all.apk" .PKGINFO '^arch = noarch$'
-tar_member_contains "$DIST_DIR/luci-i18n-oxidns-zh-cn_0.1.2-r1_all.apk" .PKGINFO '^datahash = [0-9a-f][0-9a-f]*$'
-apk_data_has_checksum "$DIST_DIR/luci-i18n-oxidns-zh-cn_0.1.2-r1_all.apk"
-tar_has_member "$DIST_DIR/luci-i18n-oxidns-zh-cn_0.1.2-r1_all.apk" usr/lib/lua/luci/i18n
-tar_has_member "$DIST_DIR/luci-i18n-oxidns-zh-cn_0.1.2-r1_all.apk" usr/lib/lua/luci/i18n/oxidns.zh-cn.lmo
-tar_has_member "$DIST_DIR/luci-i18n-oxidns-zh-cn_0.1.2-r1_all.apk" .post-install
-tar_has_member "$DIST_DIR/luci-i18n-oxidns-zh-cn_0.1.2-r1_all.apk" .post-upgrade
+# 版本只从 Makefile 取，别在这里写死：升 PKG_RELEASE 后下面所有产物名都要跟着变。
+MK_VERSION="$(sed -n 's/^PKG_VERSION:=//p' Makefile | head -n 1)"
+MK_RELEASE="$(sed -n 's/^PKG_RELEASE:=//p' Makefile | head -n 1)"
+scripts/build-luci-package.sh "$MK_VERSION" "$DIST_DIR" "$MK_RELEASE" >/dev/null
+PKG_BASE="luci-app-oxidns_${MK_VERSION}-r${MK_RELEASE}_all"
+I18N_BASE="luci-i18n-oxidns-zh-cn_${MK_VERSION}-r${MK_RELEASE}_all"
+tar_has_member "$DIST_DIR/${PKG_BASE}.ipk" control.tar.gz
+tar_has_member "$DIST_DIR/${PKG_BASE}.ipk" data.tar.gz
+tar_nested_has_member "$DIST_DIR/${PKG_BASE}.ipk" control.tar.gz postinst
+tar_nested_has_member "$DIST_DIR/${PKG_BASE}.ipk" control.tar.gz postrm
+tar_nested_has_member "$DIST_DIR/${PKG_BASE}.ipk" data.tar.gz etc/init.d/oxidns
+tar_has_member "$DIST_DIR/${I18N_BASE}.ipk" control.tar.gz
+tar_has_member "$DIST_DIR/${I18N_BASE}.ipk" data.tar.gz
+tar_nested_has_member "$DIST_DIR/${I18N_BASE}.ipk" control.tar.gz postinst
+tar_has_member "$DIST_DIR/${PKG_BASE}.apk" .PKGINFO
+tar_member_contains "$DIST_DIR/${PKG_BASE}.apk" .PKGINFO '^arch = noarch$'
+tar_member_contains "$DIST_DIR/${PKG_BASE}.apk" .PKGINFO '^datahash = [0-9a-f][0-9a-f]*$'
+apk_data_has_checksum "$DIST_DIR/${PKG_BASE}.apk"
+tar_has_member "$DIST_DIR/${PKG_BASE}.apk" etc
+tar_has_member "$DIST_DIR/${PKG_BASE}.apk" etc/config
+tar_has_member "$DIST_DIR/${PKG_BASE}.apk" usr/share/luci/menu.d
+tar_has_member "$DIST_DIR/${PKG_BASE}.apk" www/luci-static/resources/view/oxidns
+tar_has_member "$DIST_DIR/${PKG_BASE}.apk" usr/libexec/rpcd/luci.oxidns
+tar_has_member "$DIST_DIR/${PKG_BASE}.apk" etc/init.d/oxidns
+tar_has_member "$DIST_DIR/${PKG_BASE}.apk" .post-install
+tar_has_member "$DIST_DIR/${PKG_BASE}.apk" .post-upgrade
+tar_has_member "$DIST_DIR/${PKG_BASE}.apk" .post-deinstall
+tar_has_member "$DIST_DIR/${I18N_BASE}.apk" .PKGINFO
+tar_member_contains "$DIST_DIR/${I18N_BASE}.apk" .PKGINFO '^arch = noarch$'
+tar_member_contains "$DIST_DIR/${I18N_BASE}.apk" .PKGINFO '^datahash = [0-9a-f][0-9a-f]*$'
+apk_data_has_checksum "$DIST_DIR/${I18N_BASE}.apk"
+tar_has_member "$DIST_DIR/${I18N_BASE}.apk" usr/lib/lua/luci/i18n
+tar_has_member "$DIST_DIR/${I18N_BASE}.apk" usr/lib/lua/luci/i18n/oxidns.zh-cn.lmo
+tar_has_member "$DIST_DIR/${I18N_BASE}.apk" .post-install
+tar_has_member "$DIST_DIR/${I18N_BASE}.apk" .post-upgrade
 
 rm -rf "$DIST_DIR"

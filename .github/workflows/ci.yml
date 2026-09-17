@@ -21,7 +21,8 @@ jobs:
         run: scripts/check.sh
 
       - name: Build LuCI packages
-        run: scripts/build-luci-package.sh 0.1.2 dist
+        # 版本从 Makefile 读，不写死 —— CI 构建的包必须与 Makefile 声明的版本一致。
+        run: scripts/build-luci-package.sh '' dist
 
       - name: Run integration checks
         run: scripts/integration-check.sh
