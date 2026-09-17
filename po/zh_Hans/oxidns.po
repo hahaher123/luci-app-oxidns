@@ -34,23 +34,26 @@ msgstr "可用"
 msgid "Binary path"
 msgstr "二进制路径"
 
+msgid "Blacklist"
+msgstr "黑名单"
+
 msgid "Build"
 msgstr "构建信息"
-
-msgid "Cancel"
-msgstr "取消"
 
 msgid "Bundle"
 msgstr "Bundle"
 
+msgid "Cancel"
+msgstr "取消"
+
 msgid "Clear"
 msgstr "清空"
 
-msgid "Clear configured GitHub token"
-msgstr "清除已配置的 GitHub Token"
-
 msgid "Clear configured download proxy"
 msgstr "清除已配置的下载代理"
+
+msgid "Clear configured GitHub token"
+msgstr "清除已配置的 GitHub Token"
 
 msgid "Close"
 msgstr "关闭"
@@ -85,9 +88,6 @@ msgstr "控制 OxiDNS 的 OpenWrt init 服务。"
 msgid "Core"
 msgstr "内核"
 
-msgid "Core Status"
-msgstr "内核状态"
-
 msgid "Core bundle"
 msgstr "内核 bundle"
 
@@ -100,26 +100,47 @@ msgstr "内核操作失败"
 msgid "Core repository"
 msgstr "内核仓库"
 
+msgid "Core Status"
+msgstr "内核状态"
+
 msgid "Delete configuration file"
 msgstr "删除配置文件"
 
 msgid "Delete working directory"
 msgstr "删除工作目录"
 
+msgid "Details"
+msgstr "详情"
+
 msgid "Disable"
 msgstr "禁用"
 
-msgid "Download proxy"
-msgstr "下载代理"
+msgid "Discard unsaved changes and load another file?"
+msgstr "有未保存的修改，确定放弃并切换到另一个文件？"
+
+msgid "Discard unsaved changes and reload this file?"
+msgstr "有未保存的修改，确定放弃并重新载入该文件？"
 
 msgid "Download core archive"
 msgstr "下载内核压缩包"
 
+msgid "Download proxy"
+msgstr "下载代理"
+
 msgid "Download release metadata"
 msgstr "下载 release 元数据"
 
+msgid "Dynamic Domains"
+msgstr "动态域名"
+
+msgid "Edit the rule list files that OxiDNS providers read, then restart the service to apply the changes."
+msgstr "编辑 OxiDNS provider 读取的规则列表文件，改完需要重启服务才会生效。"
+
 msgid "Edit, validate, and save the full OxiDNS YAML configuration file."
 msgstr "编辑、校验并保存完整的 OxiDNS YAML 配置文件。"
+
+msgid "Editing"
+msgstr "正在编辑"
 
 msgid "Enable"
 msgstr "启用"
@@ -142,20 +163,26 @@ msgstr "格式：http://主机:端口、https://主机:端口、socks5://主机:
 msgid "GitHub token"
 msgstr "GitHub Token"
 
+msgid "Greylist"
+msgstr "灰名单"
+
 msgid "Install Core"
 msgstr "安装内核"
 
 msgid "Install core files"
 msgstr "安装内核文件"
 
+msgid "Install or repair the OxiDNS core binary. Runtime upgrades are handled by OxiDNS itself."
+msgstr "安装或修复 OxiDNS 内核二进制。运行时升级由 OxiDNS 自身处理。"
+
 msgid "Install the OxiDNS core before editing the configuration."
 msgstr "请先安装 OxiDNS 内核，再编辑配置。"
 
+msgid "Install the OxiDNS core before editing the rule files."
+msgstr "请先安装 OxiDNS 内核，然后才能编辑规则文件。"
+
 msgid "Install the OxiDNS core before using service controls."
 msgstr "请先安装 OxiDNS 内核，再使用服务控制。"
-
-msgid "Install or repair the OxiDNS core binary. Runtime upgrades are handled by OxiDNS itself."
-msgstr "安装或修复 OxiDNS 内核二进制。运行时升级由 OxiDNS 自身处理。"
 
 msgid "Installed"
 msgstr "已安装"
@@ -165,6 +192,18 @@ msgstr "正在安装 OxiDNS 内核..."
 
 msgid "Installing uploaded OxiDNS core..."
 msgstr "正在安装上传的 OxiDNS 内核..."
+
+msgid "Lines"
+msgstr "行数"
+
+msgid "Loaded rule file"
+msgstr "已载入规则文件"
+
+msgid "Loading rule file..."
+msgstr "正在载入规则文件..."
+
+msgid "Local PTR"
+msgstr "本地 ptr"
 
 msgid "Logs"
 msgstr "日志"
@@ -178,17 +217,26 @@ msgstr "LuCI 可以下载官方 OxiDNS release archive，也可以安装上传�
 msgid "Manage the OxiDNS runtime, service, configuration, and logs from LuCI."
 msgstr "在 LuCI 中管理 OxiDNS 运行时、服务、配置和日志。"
 
+msgid "Modified"
+msgstr "修改时间"
+
 msgid "No"
 msgstr "否"
+
+msgid "No rule files were found in the rule directory."
+msgstr "规则目录下没有找到任何规则文件。"
 
 msgid "Not installed"
 msgstr "未安装"
 
-msgid "Optional. The token is never shown after saving."
-msgstr "可选。保存后不会再显示 Token。"
+msgid "One rule per line. Lines starting with # are ignored."
+msgstr "每行一条规则，以 # 开头的行会被忽略。"
 
 msgid "Open WebUI"
 msgstr "打开 WebUI"
+
+msgid "Optional. The token is never shown after saving."
+msgstr "可选。保存后不会再显示 Token。"
 
 msgid "Overview"
 msgstr "概览"
@@ -202,12 +250,6 @@ msgstr "OxiDNS 配置"
 msgid "OxiDNS Core"
 msgstr "OxiDNS 内核"
 
-msgid "OxiDNS Logs"
-msgstr "OxiDNS 日志"
-
-msgid "OxiDNS Settings"
-msgstr "OxiDNS 设置"
-
 msgid "OxiDNS is already disabled on boot."
 msgstr "OxiDNS 已经禁用开机自启。"
 
@@ -219,6 +261,18 @@ msgstr "OxiDNS 已经在运行。"
 
 msgid "OxiDNS is already stopped."
 msgstr "OxiDNS 已经停止。"
+
+msgid "OxiDNS Logs"
+msgstr "OxiDNS 日志"
+
+msgid "OxiDNS reads rule files when a provider is loaded. Use Save & Restart to apply the changes."
+msgstr "OxiDNS 只在 provider 载入时读取规则文件。要让改动生效请使用「保存并重启」。"
+
+msgid "OxiDNS Rule Files"
+msgstr "OxiDNS 规则文件"
+
+msgid "OxiDNS Settings"
+msgstr "OxiDNS 设置"
 
 msgid "Path"
 msgstr "路径"
@@ -232,8 +286,14 @@ msgstr "准备下载"
 msgid "Reason"
 msgstr "原因"
 
+msgid "Redirect"
+msgstr "重定向"
+
 msgid "Refresh"
 msgstr "刷新"
+
+msgid "Reload"
+msgstr "重新载入"
 
 msgid "Remove Core"
 msgstr "删除内核"
@@ -265,6 +325,18 @@ msgstr "重启服务"
 msgid "Resume"
 msgstr "继续"
 
+msgid "Rule directory"
+msgstr "规则目录"
+
+msgid "Rule file"
+msgstr "规则文件"
+
+msgid "Rule file saved and service restarted"
+msgstr "规则文件已保存，服务已重启"
+
+msgid "Rule Files"
+msgstr "规则文件"
+
 msgid "Running"
 msgstr "运行中"
 
@@ -292,8 +364,14 @@ msgstr "正在保存并重启服务..."
 msgid "Saving configuration..."
 msgstr "正在保存配置..."
 
+msgid "Saving rule file..."
+msgstr "正在保存规则文件..."
+
 msgid "Saving settings..."
 msgstr "正在保存设置..."
+
+msgid "Select release archive"
+msgstr "选择 release 压缩包"
 
 msgid "Service"
 msgstr "服务"
@@ -313,8 +391,8 @@ msgstr "设置"
 msgid "Settings saved."
 msgstr "设置已保存。"
 
-msgid "Select release archive"
-msgstr "选择 release 压缩包"
+msgid "Size"
+msgstr "大小"
 
 msgid "Stage"
 msgstr "阶段"
@@ -337,29 +415,47 @@ msgstr "已停止"
 msgid "Target"
 msgstr "目标架构"
 
-msgid "Details"
-msgstr "详情"
-
 msgid "The content changed since it was last checked"
 msgstr "内容已修改，请重新校验"
+
+msgid "The rule file does not exist yet. Save to create it."
+msgstr "规则文件尚不存在，保存后创建。"
+
+msgid "The rule file was modified on disk since it was loaded. Reload it before saving again."
+msgstr "该规则文件在载入后被外部修改过，请先重新载入再保存。"
 
 msgid "The running service still uses the previous configuration. Use Save & Restart to apply the changes."
 msgstr "运行中的服务仍在使用旧配置，如需生效请点击「保存并重启」。"
 
-msgid "Unable to query OxiDNS status"
-msgstr "无法查询 OxiDNS 状态"
+msgid "There are unsaved changes"
+msgstr "有未保存的修改"
 
 msgid "Unable to load configuration."
 msgstr "无法加载配置。"
 
+msgid "Unable to load the rule file"
+msgstr "无法载入规则文件"
+
+msgid "Unable to load the rule file."
+msgstr "无法载入该规则文件。"
+
+msgid "Unable to load the rule files."
+msgstr "无法载入规则文件列表。"
+
+msgid "Unable to query OxiDNS status"
+msgstr "无法查询 OxiDNS 状态"
+
 msgid "Unavailable"
 msgstr "不可用"
 
-msgid "Upload has been cancelled"
-msgstr "上传已取消"
+msgid "Unpack core archive"
+msgstr "解压内核压缩包"
 
 msgid "Upload Core"
 msgstr "上传内核"
+
+msgid "Upload has been cancelled"
+msgstr "上传已取消"
 
 msgid "Validate"
 msgstr "校验"
@@ -372,9 +468,6 @@ msgstr "校验上传的内核"
 
 msgid "Validating configuration..."
 msgstr "正在校验配置..."
-
-msgid "Unpack core archive"
-msgstr "解压内核压缩包"
 
 msgid "Validation failed"
 msgstr "校验未通过"
@@ -391,6 +484,9 @@ msgstr "版本"
 msgid "View recent OxiDNS entries from OpenWrt logread."
 msgstr "查看 OpenWrt logread 中最近的 OxiDNS 条目。"
 
+msgid "Waiting for command output..."
+msgstr "正在等待命令输出..."
+
 msgid "WebUI"
 msgstr "WebUI"
 
@@ -400,8 +496,8 @@ msgstr "WebUI 文件尚未安装。"
 msgid "WebUI listens on loopback only. Configure the HTTP listen address to a LAN-reachable address, or use an SSH tunnel."
 msgstr "WebUI 仅监听 loopback。请把 HTTP 监听地址配置为局域网可访问地址，或使用 SSH 隧道。"
 
-msgid "Waiting for command output..."
-msgstr "正在等待命令输出..."
+msgid "Whitelist"
+msgstr "白名单"
 
 msgid "Working directory"
 msgstr "工作目录"
@@ -411,78 +507,3 @@ msgstr "YAML"
 
 msgid "Yes"
 msgstr "是"
-
-msgid "Discard unsaved changes and load another file?"
-msgstr "有未保存的修改，确定放弃并切换到另一个文件？"
-
-msgid "Discard unsaved changes and reload this file?"
-msgstr "有未保存的修改，确定放弃并重新载入该文件？"
-
-msgid "Edit the rule list files that OxiDNS providers read, then restart the service to apply the changes."
-msgstr "编辑 OxiDNS provider 读取的规则列表文件，改完需要重启服务才会生效。"
-
-msgid "Editing"
-msgstr "正在编辑"
-
-msgid "Install the OxiDNS core before editing the rule files."
-msgstr "请先安装 OxiDNS 内核，然后才能编辑规则文件。"
-
-msgid "Lines"
-msgstr "行数"
-
-msgid "Loaded rule file"
-msgstr "已载入规则文件"
-
-msgid "Loading rule file..."
-msgstr "正在载入规则文件..."
-
-msgid "Modified"
-msgstr "修改时间"
-
-msgid "No rule files were found in the rule directory."
-msgstr "规则目录下没有找到任何规则文件。"
-
-msgid "One rule per line. Lines starting with # are ignored."
-msgstr "每行一条规则，以 # 开头的行会被忽略。"
-
-msgid "OxiDNS reads rule files when a provider is loaded. Use Save & Restart to apply the changes."
-msgstr "OxiDNS 只在 provider 载入时读取规则文件。要让改动生效请使用「保存并重启」。"
-
-msgid "OxiDNS Rule Files"
-msgstr "OxiDNS 规则文件"
-
-msgid "Reload"
-msgstr "重新载入"
-
-msgid "Rule directory"
-msgstr "规则目录"
-
-msgid "Rule file"
-msgstr "规则文件"
-
-msgid "Rule file saved and service restarted"
-msgstr "规则文件已保存，服务已重启"
-
-msgid "Rule Files"
-msgstr "规则文件"
-
-msgid "Saving rule file..."
-msgstr "正在保存规则文件..."
-
-msgid "Size"
-msgstr "大小"
-
-msgid "The rule file was modified on disk since it was loaded. Reload it before saving again."
-msgstr "该规则文件在载入后被外部修改过，请先重新载入再保存。"
-
-msgid "There are unsaved changes"
-msgstr "有未保存的修改"
-
-msgid "Unable to load the rule file"
-msgstr "无法载入规则文件"
-
-msgid "Unable to load the rule file."
-msgstr "无法载入该规则文件。"
-
-msgid "Unable to load the rule files."
-msgstr "无法载入规则文件列表。"

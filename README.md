@@ -46,7 +46,7 @@ opkg install ./luci-app-oxidns_0.1.2-r1_all.ipk
 opkg install ./luci-i18n-oxidns-zh-cn_0.1.2-r1_all.ipk
 ```
 
-本分支包版本 `0.1.2` 高于上游 `v0.1.0`，装到已装过上游包的机器上属于普通升级，不需要 `--force-reinstall`。
+本分支包版本 `0.1.3` 高于上游 `v0.1.0`，装到已装过上游包的机器上属于普通升级，不需要 `--force-reinstall`。
 
 装完菜单没出现就重启 `rpcd`（`/etc/init.d/rpcd restart`），然后打开 `Services -> OxiDNS`。
 
@@ -106,9 +106,9 @@ LuCI 按设备 CPU 架构选择对应的 musl archive（如 `oxidns-x86_64-unkno
 
 ## 本分支相对上游的改动
 
-包版本 `0.1.0` → `0.1.2`，构建出的包版本高于上游，可直接覆盖升级。功能上两处改动，文案均已进 `po/`：
+包版本 `0.1.0` → `0.1.3`，构建出的包版本高于上游，可直接覆盖升级。功能上两处改动，文案均已进 `po/`：
 
-1. **新增 `Rule Files` 页** —— 编辑 OxiDNS provider 读取的规则文件（默认目录 `/etc/oxidns/rule`）。自动列出目录下所有 `.txt`（带大小、行数、修改时间）；`Save` 只写盘，`Save & Restart` 才生效，因为 OxiDNS 只在 provider 载入时读这些文件；保存时做 mtime 冲突检测、写前备份（保留最近 10 份）、统一成 LF、沿用原文件权限；只允许目录内的单层 `.txt`。规则目录可用 `uci set oxidns.main.rules_dir=/your/path` 覆盖。
+1. **新增 `Rule Files` 页** —— 编辑 OxiDNS provider 读取的规则文件（默认目录 `/etc/oxidns/rule`）。页面内用横向标签页切换文件：固定 7 个（白名单、黑名单、灰名单、动态域名、hosts、重定向、本地 ptr），目录里多出来的 `.txt` 以文件名作题注追加在后面；目录里还没有的固定文件照样出标签页（斜体弱化），保存时创建。`Save` 只写盘，`Save & Restart` 才生效，因为 OxiDNS 只在 provider 载入时读这些文件；保存时做 mtime 冲突检测、写前备份（保留最近 10 份）、统一成 LF、沿用原文件权限；只允许目录内的单层 `.txt`。规则目录可用 `uci set oxidns.main.rules_dir=/your/path` 覆盖。
 2. **配置页的提示显示** —— 校验 / 保存结果按状态着色（通过绿、未生效黄、失败红、进行中灰）并带结论标题，同时弹一条 6 秒顶部横幅；操作期间按钮禁用、被点的按钮转圈；`oxidns check` 的多行诊断原样换行并剥 ANSI；区分 `Save` 与 `Save & Restart`；文件已写但服务没起来时降级为黄色提示；改了正文后旧结论降级；保留 RPC 失败的真实错误文案。
 
 另外为保证 Windows 上构建出的包也能直接在路由器上用：`.gitattributes` 固定源码为 LF，`scripts/check.sh` 增加行尾守卫（源文件含 CRLF 即失败）。

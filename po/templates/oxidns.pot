@@ -23,6 +23,9 @@ msgstr ""
 msgid "Binary path"
 msgstr ""
 
+msgid "Blacklist"
+msgstr ""
+
 msgid "Build"
 msgstr ""
 
@@ -116,6 +119,9 @@ msgstr ""
 msgid "Download release metadata"
 msgstr ""
 
+msgid "Dynamic Domains"
+msgstr ""
+
 msgid "Edit the rule list files that OxiDNS providers read, then restart the service to apply the changes."
 msgstr ""
 
@@ -144,6 +150,9 @@ msgid "Format: http://host:port, https://host:port, socks5://host:port, or socks
 msgstr ""
 
 msgid "GitHub token"
+msgstr ""
+
+msgid "Greylist"
 msgstr ""
 
 msgid "Install Core"
@@ -180,6 +189,9 @@ msgid "Loaded rule file"
 msgstr ""
 
 msgid "Loading rule file..."
+msgstr ""
+
+msgid "Local PTR"
 msgstr ""
 
 msgid "Logs"
@@ -261,6 +273,9 @@ msgid "Prepare download"
 msgstr ""
 
 msgid "Reason"
+msgstr ""
+
+msgid "Redirect"
 msgstr ""
 
 msgid "Refresh"
@@ -389,6 +404,9 @@ msgstr ""
 msgid "The content changed since it was last checked"
 msgstr ""
 
+msgid "The rule file does not exist yet. Save to create it."
+msgstr ""
+
 msgid "The rule file was modified on disk since it was loaded. Reload it before saving again."
 msgstr ""
 
@@ -462,6 +480,9 @@ msgid "WebUI files are not installed."
 msgstr ""
 
 msgid "WebUI listens on loopback only. Configure the HTTP listen address to a LAN-reachable address, or use an SSH tunnel."
+msgstr ""
+
+msgid "Whitelist"
 msgstr ""
 
 msgid "Working directory"

@@ -45,6 +45,20 @@ var rulesState = {
 	mtime: ''
 };
 
+/*
+ * 固定标签页：题注与文件名一一对应，顺序即页面展示顺序。
+ * 目录里多出来的 .txt 以文件名作题注追加在固定标签页之后。
+ */
+var RULE_TABS = [
+	{ name: 'whitelist.txt', label: _('Whitelist') },
+	{ name: 'blocklist.txt', label: _('Blacklist') },
+	{ name: 'greylist.txt', label: _('Greylist') },
+	{ name: 'ddnslist.txt', label: _('Dynamic Domains') },
+	{ name: 'hosts.txt', label: 'hosts' },
+	{ name: 'redirect.txt', label: _('Redirect') },
+	{ name: 'local-ptr.txt', label: _('Local PTR') }
+];
+
 var editorState = {
 	resultKind: null,
 	buttons: []
@@ -68,14 +82,7 @@ function textareaValue() {
 }
 
 function selectValue() {
-	var select = document.getElementById('oxidns-rules-select');
-	return select ? select.value : '';
-}
-
-function setSelectValue(name) {
-	var select = document.getElementById('oxidns-rules-select');
-	if (select)
-		select.value = name || '';
+	return rulesState.current || '';
 }
 
 function coreInstalled(status) {
@@ -224,7 +231,7 @@ function applyLoadedFile(result) {
 	rulesState.loaded = result.content || '';
 	rulesState.mtime = result.mtime || '';
 
-	setSelectValue(rulesState.current);
+	setTabActive(rulesState.current);
 	showFileInfo(result);
 }
 
@@ -245,6 +252,11 @@ function loadRuleFile(name) {
 		var textarea = document.getElementById('oxidns-rules-content');
 		if (textarea)
 			textarea.value = rulesState.loaded;
+
+		if (result.exists === false) {
+			renderResult('warning', _('The rule file does not exist yet. Save to create it.'), result.path);
+			return result;
+		}
 
 		renderResult('notice', _('Loaded rule file'), result.path);
 		return result;
@@ -315,41 +327,121 @@ function handleEditorInput() {
 }
 
 function discardChanges() {
-	if (isDirty() && !window.confirm(_('Discard unsaved changes and reload this file?'))) {
-		setSelectValue(rulesState.current);
+	if (isDirty() && !window.confirm(_('Discard unsaved changes and reload this file?')))
 		return Promise.resolve();
-	}
 
-	return loadRuleFile(selectValue());
+	return loadRuleFile(rulesState.current);
 }
 
 function handleFileChange(ev) {
-	var name = ev && ev.currentTarget ? ev.currentTarget.value : selectValue();
+	var name = ev && ev.currentTarget ? ev.currentTarget.getAttribute('data-name') : '';
 
-	if (isDirty() && !window.confirm(_('Discard unsaved changes and load another file?'))) {
-		setSelectValue(rulesState.current);
+	if (!name || name === rulesState.current)
 		return;
-	}
+
+	if (isDirty() && !window.confirm(_('Discard unsaved changes and load another file?')))
+		return;
 
 	return loadRuleFile(name);
 }
 
-function ruleSelect(files, current) {
-	var options = files.map(function(file) {
-		return E('option', {
-			'value': file.name,
-			'selected': file.name === current ? 'selected' : null
-		}, '%s (%s)'.format(file.name, formatBytes(file.size)));
+/* 标签页顺序：固定列表在前（按 RULE_TABS 顺序），目录里多出来的 .txt 追加在后。
+ * 固定列表里目录还没有的文件也照样出标签页（exists:false，保存时创建），
+ * 这样 local-ptr.txt 之类尚未落盘的文件也能从页面直接创建。 */
+function orderedFiles(files, dir) {
+	var byName = {};
+
+	(files || []).forEach(function(file) {
+		byName[file.name] = file;
 	});
 
-	var select = E('select', {
-		'id': 'oxidns-rules-select',
-		'class': 'cbi-input-select',
-		'style': 'min-width: 320px;'
-	}, options);
+	var ordered = [];
 
-	select.addEventListener('change', handleFileChange);
-	return select;
+	RULE_TABS.forEach(function(tab) {
+		var file = byName[tab.name];
+
+		if (file) {
+			file.label = tab.label;
+		} else {
+			file = {
+				name: tab.name,
+				label: tab.label,
+				exists: false,
+				path: (dir ? dir.replace(/[\/]+$/, '') + '/' : '') + tab.name,
+				size: '0',
+				lines: '0',
+				mtime: ''
+			};
+		}
+
+		ordered.push(file);
+	});
+
+	(files || []).forEach(function(file) {
+		var known = RULE_TABS.some(function(tab) {
+			return tab.name === file.name;
+		});
+
+		if (!known) {
+			file.label = file.name;
+			ordered.push(file);
+		}
+	});
+
+	return ordered;
+}
+
+function tabStyle(active, missing) {
+	var base = 'display: inline-block; padding: 6px 14px; margin-bottom: -1px;'
+		+ ' border: 1px solid ' + (active ? 'rgba(0, 0, 0, .2)' : 'transparent') + ';'
+		+ ' border-bottom-color: ' + (active ? 'transparent' : 'rgba(0, 0, 0, .2)') + ';'
+		+ ' border-radius: 4px 4px 0 0; background: ' + (active ? 'rgba(0, 0, 0, .04)' : 'transparent') + ';'
+		+ ' font-weight: ' + (active ? 'bold' : 'normal') + '; cursor: pointer; user-select: none;';
+
+	if (missing)
+		base += ' font-style: italic; opacity: .6;';
+
+	return base;
+}
+
+/* 横向标签页：切换选中态只改样式，真正加载成功后才更新 data-active */
+function ruleTabs(files, current) {
+	var bar = E('ul', {
+		'id': 'oxidns-rules-tabs',
+		'style': 'display: flex; flex-wrap: wrap; gap: 2px; margin: 0; padding: 0 0 0 2px;'
+			+ ' list-style: none; border-bottom: 1px solid rgba(0, 0, 0, .2);'
+	});
+
+	files.forEach(function(file) {
+		var active = file.name === current;
+		var missing = file.exists === false;
+		var tab = E('li', {
+			'data-name': file.name,
+			'style': tabStyle(active, missing),
+			'title': missing ? _('The rule file does not exist yet. Save to create it.') : file.path
+		}, file.label);
+
+		tab.addEventListener('click', handleFileChange);
+		bar.appendChild(tab);
+	});
+
+	return bar;
+}
+
+function setTabActive(name) {
+	var bar = document.getElementById('oxidns-rules-tabs');
+
+	if (!bar)
+		return;
+
+	Array.prototype.forEach.call(bar.children, function(tab) {
+		var tabName = tab.getAttribute('data-name');
+		var missing = rulesState.files.some(function(file) {
+			return file.name === tabName && file.exists === false;
+		});
+
+		tab.setAttribute('style', tabStyle(tabName === name, missing));
+	});
 }
 
 function ruleTextarea(content) {
@@ -387,8 +479,14 @@ return view.extend({
 				message: loadErrorMessage(err)
 			};
 		}).then(function(list) {
-			var files = list.files || [];
-			var first = files.length ? files[0].name : null;
+			var files = orderedFiles(list.files || [], list.dir || '');
+			var first = null;
+
+			/* 默认打开第一个真实存在的文件（按标签页顺序） */
+			files.forEach(function(file) {
+				if (first === null && file.exists !== false)
+					first = file.name;
+			});
 
 			/* 首个文件在 load() 里就读出来，render() 才能同步画出编辑器内容 */
 			return L.resolveDefault(first ? callRulesRead(first) : null, null).then(function(file) {
@@ -409,7 +507,7 @@ return view.extend({
 		var list = data && data.list ? data.list : {};
 		var status = data && data.status ? data.status : {};
 		var file = data && data.file ? data.file : null;
-		var files = list.files || [];
+		var files = orderedFiles(list.files || [], list.dir || '');
 		var readFailed = list.ok === false;
 
 		rulesState.dir = list.dir || '';
@@ -489,7 +587,7 @@ return view.extend({
 					E('div', { 'class': 'tr' }, [
 						E('div', { 'class': 'td left', 'style': 'width: 240px' }, _('Rule file')),
 						E('div', { 'class': 'td left' }, [
-							ruleSelect(files, rulesState.current),
+							ruleTabs(files, rulesState.current),
 							E('span', {
 								'class': 'cbi-value-description',
 								'style': 'display: block; margin-top: .35em;'
