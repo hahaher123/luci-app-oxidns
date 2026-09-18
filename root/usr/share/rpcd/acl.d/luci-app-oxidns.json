@@ -10,6 +10,7 @@
 					"settings_read",
 					"rules_list",
 					"rules_read",
+					"learn_reset_get",
 					"logs_recent"
 				]
 			}
@@ -29,6 +30,8 @@
 					"config_validate",
 					"config_save",
 					"rules_save",
+					"learn_reset_save",
+					"learn_reset_run",
 					"settings_save"
 				]
 			}
