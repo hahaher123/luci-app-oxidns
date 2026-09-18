@@ -105,7 +105,7 @@ if command -v msgfmt >/dev/null 2>&1; then
 	msgfmt --check po/zh_Hans/oxidns.po -o /dev/null
 fi
 sh -n root/usr/libexec/rpcd/luci.oxidns
-sh -n root/usr/bin/oxidns-learn-reset.sh
+sh -n root/usr/libexec/oxidns/learn-reset.sh
 sh -n root/etc/init.d/oxidns
 sh -n scripts/build-luci-package.sh
 sh -n scripts/integration-check.sh

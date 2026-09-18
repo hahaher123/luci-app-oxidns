@@ -135,6 +135,13 @@ fi
 if [ -x /etc/init.d/rpcd ]; then
 	/etc/init.d/rpcd restart >/dev/null 2>&1 || true
 fi
+# 0.1.4-r1 曾把 learn-reset 脚本装在 /usr/bin，升级时迁移旧 cron 块里的路径
+if [ -f /etc/crontabs/root ] && [ -x /usr/libexec/oxidns/learn-reset.sh ]; then
+	sed -i 's#/usr/bin/oxidns-learn-reset\.sh#/usr/libexec/oxidns/learn-reset.sh#g' /etc/crontabs/root 2>/dev/null || true
+	if [ -x /etc/init.d/cron ]; then
+		/etc/init.d/cron restart >/dev/null 2>&1 || true
+	fi
+fi
 exit 0
 EOF
 	chmod 755 "$out"
@@ -188,8 +195,8 @@ if [ -d root ]; then
 fi
 
 chmod 755 "$DATA_DIR/usr/libexec/rpcd/luci.oxidns"
-if [ -f "$DATA_DIR/usr/bin/oxidns-learn-reset.sh" ]; then
-	chmod 755 "$DATA_DIR/usr/bin/oxidns-learn-reset.sh"
+if [ -f "$DATA_DIR/usr/libexec/oxidns/learn-reset.sh" ]; then
+	chmod 755 "$DATA_DIR/usr/libexec/oxidns/learn-reset.sh"
 fi
 if [ -f "$DATA_DIR/etc/init.d/oxidns" ]; then
 	chmod 755 "$DATA_DIR/etc/init.d/oxidns"
