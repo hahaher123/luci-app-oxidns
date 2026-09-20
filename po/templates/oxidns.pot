@@ -554,7 +554,7 @@ msgstr ""
 msgid "Version"
 msgstr ""
 
-msgid "View recent OxiDNS entries from OpenWrt logread."
+msgid "View the OxiDNS log file configured in config.yaml (log.file). Timestamps are shown in UTC+8. Clearing truncates the log file on the device."
 msgstr ""
 
 msgid "Waiting for command output..."

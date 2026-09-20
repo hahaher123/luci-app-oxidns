@@ -568,8 +568,8 @@ msgstr "校验 release 摘要"
 msgid "Version"
 msgstr "版本"
 
-msgid "View recent OxiDNS entries from OpenWrt logread."
-msgstr "查看 OpenWrt logread 中最近的 OxiDNS 条目。"
+msgid "View the OxiDNS log file configured in config.yaml (log.file). Timestamps are shown in UTC+8. Clearing truncates the log file on the device."
+msgstr "查看 config.yaml 中 log.file 指定的 OxiDNS 日志文件。时间戳按东八区（UTC+8）显示。「清空」会截断设备上的日志文件。"
 
 msgid "Waiting for command output..."
 msgstr "正在等待命令输出..."

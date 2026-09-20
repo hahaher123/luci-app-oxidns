@@ -16,13 +16,13 @@ OxiDNS 的 OpenWrt / LuCI 管理插件。安装后 LuCI 出现 `Services -> OxiD
 **1. 取包** —— 从本仓库 Release 下载：
 
 ```sh
-curl -fsSLO https://github.com/hahaher123/luci-app-oxidns/releases/download/v0.1.4-r2/luci-app-oxidns_0.1.4-r2_all.apk
-curl -fsSLO https://github.com/hahaher123/luci-app-oxidns/releases/download/v0.1.4-r2/luci-i18n-oxidns-zh-cn_0.1.4-r2_all.apk
+curl -fsSLO https://github.com/hahaher123/luci-app-oxidns/releases/download/v0.1.4-r3/luci-app-oxidns_0.1.4-r3_all.apk
+curl -fsSLO https://github.com/hahaher123/luci-app-oxidns/releases/download/v0.1.4-r3/luci-i18n-oxidns-zh-cn_0.1.4-r3_all.apk
 ```
 
 `opkg` 系统把 `.apk` 换成 `.ipk`；想固定取最新一版可用 `releases/latest/download/<文件名>`；校验和见 Release 里的 `sha256sums.txt`。
 
-Release tag 为 `v<PKG_VERSION>-r<PKG_RELEASE>`，与包文件名里的完整版本号一一对应（如 tag `v0.1.4-r2` ↔ 包 `luci-app-oxidns_0.1.4-r2_all.apk`）。历史上 `v0.1.2` 这类不带 `-r` 的 tag 是旧规则产物，资产是 `0.1.2-r1` 的那两个包。
+Release tag 为 `v<PKG_VERSION>-r<PKG_RELEASE>`，与包文件名里的完整版本号一一对应（如 tag `v0.1.4-r3` ↔ 包 `luci-app-oxidns_0.1.4-r3_all.apk`）。历史上 `v0.1.2` 这类不带 `-r` 的 tag 是旧规则产物，资产是 `0.1.2-r1` 的那两个包。
 
 版本号约定：修 bug / 调整已安装文件只升 `PKG_RELEASE`；新增功能才升 `PKG_VERSION`（同时把 `PKG_RELEASE` 重置为 `1`）；只改文档或 CI 不动版本号。
 
@@ -34,18 +34,18 @@ Release tag 为 `v<PKG_VERSION>-r<PKG_RELEASE>`，与包文件名里的完整版
 scripts/build-luci-package.sh '' dist
 ```
 
-留空参数时默认取 `Makefile` 里的 `PKG_VERSION` / `PKG_RELEASE`，产物写在 `dist/`；也可以显式给版本与修订号：`scripts/build-luci-package.sh 0.1.4 dist 2`。
+留空参数时默认取 `Makefile` 里的 `PKG_VERSION` / `PKG_RELEASE`，产物写在 `dist/`；也可以显式给版本与修订号：`scripts/build-luci-package.sh 0.1.4 dist 3`。
 
 **2. 装到路由器** —— 把包拷上去后：
 
 ```sh
 # apk 系统
-apk add --allow-untrusted --no-network ./luci-app-oxidns_0.1.4-r2_all.apk
-apk add --allow-untrusted --no-network ./luci-i18n-oxidns-zh-cn_0.1.4-r2_all.apk
+apk add --allow-untrusted --no-network ./luci-app-oxidns_0.1.4-r3_all.apk
+apk add --allow-untrusted --no-network ./luci-i18n-oxidns-zh-cn_0.1.4-r3_all.apk
 
 # opkg 系统
-opkg install ./luci-app-oxidns_0.1.4-r2_all.ipk
-opkg install ./luci-i18n-oxidns-zh-cn_0.1.4-r2_all.ipk
+opkg install ./luci-app-oxidns_0.1.4-r3_all.ipk
+opkg install ./luci-i18n-oxidns-zh-cn_0.1.4-r3_all.ipk
 ```
 
 本分支包版本 `0.1.4` 高于上游 `v0.1.0`，装到已装过上游包的机器上属于普通升级，不需要 `--force-reinstall`。
@@ -75,7 +75,7 @@ LuCI 按设备 CPU 架构选择对应的 musl archive（如 `oxidns-x86_64-unkno
 | `Core` | 安装、上传安装、修复重装、删除内核 |
 | `Configuration` | 查看、校验、保存配置文件 |
 | `Rule Files` | 编辑 provider 读取的规则列表文件；支持定时重置学习文件（learned-cn / learned-proxy） |
-| `Logs` | 运行日志，支持刷新与暂停 |
+| `Logs` | 运行日志，支持刷新与暂停；「清空」截断日志文件 |
 | `Settings` | core repository、bundle、代理、配置路径、工作目录 |
 
 ## 默认路径
@@ -104,7 +104,7 @@ LuCI 按设备 CPU 架构选择对应的 musl archive（如 `oxidns-x86_64-unkno
 - 只支持 OxiDNS 已发布的 Linux musl release target。
 - `Core` 页只负责首次安装、上传安装和修复重装，不做版本升级。
 - `Overview` 的 WebUI 链接按配置里的 HTTP listen 地址生成；监听 `127.0.0.1` 时 LuCI 保留链接并提示需要本机访问或 SSH 隧道。
-- 日志页读的是 `logread` 里 OxiDNS 服务的 stdout/stderr 输出。
+- 日志页显示 config.yaml 中 `log.file` 指定的日志文件（未配置时退回 `logread`）；「清空」会截断设备上的日志文件，不会清 syslog。
 
 ## 本分支相对上游的改动
 
@@ -113,5 +113,6 @@ LuCI 按设备 CPU 架构选择对应的 musl archive（如 `oxidns-x86_64-unkno
 1. **新增 `Rule Files` 页** —— 编辑 OxiDNS provider 读取的规则文件（默认目录 `/etc/oxidns/rule`）。页面内用横向标签页切换文件：固定 7 个（白名单、黑名单、灰名单、动态域名、hosts、重定向、本地 ptr），目录里多出来的 `.txt` 以文件名作题注追加在后面；目录里还没有的固定文件照样出标签页（斜体弱化），保存时创建。`Save` 只写盘，`Save & Restart` 才生效，因为 OxiDNS 只在 provider 载入时读这些文件；保存时做 mtime 冲突检测、写前备份（保留最近 10 份）、统一成 LF、沿用原文件权限；只允许目录内的单层 `.txt`。规则目录可用 `uci set oxidns.main.rules_dir=/your/path` 覆盖。
 2. **`Rule Files` 页支持定时重置学习文件** —— `learned-cn.txt` / `learned-proxy.txt` 由 OxiDNS 的 `learn_domain` 执行器（`dynamic_domain_set`）自动写入，页面里可分别勾选、按每天 / 每周指定时间定时清空：走 OxiDNS 管理 API 的 `rules/clear`，内存快照与持久化文件同步清理，**无需重启服务**。定时任务写入 cron 托管块（`/etc/crontabs/root` 中 `# BEGIN/END luci-app-oxidns learn-reset`），由后端脚本 `/usr/libexec/oxidns/learn-reset.sh` 执行；管理 API 地址、用户、密码在页面上配置（存 UCI，密码不回显）。也可随时点 `Reset now` 手动清空。
 3. **配置页的提示显示** —— 校验 / 保存结果按状态着色（通过绿、未生效黄、失败红、进行中灰）并带结论标题，同时弹一条 6 秒顶部横幅；操作期间按钮禁用、被点的按钮转圈；`oxidns check` 的多行诊断原样换行并剥 ANSI；区分 `Save` 与 `Save & Restart`；文件已写但服务没起来时降级为黄色提示；改了正文后旧结论降级；保留 RPC 失败的真实错误文案。
+4. **日志页改为直读日志文件** —— 显示 config.yaml 中 `log.file` 指定的文件内容（相对路径按 OxiDNS 语义基于工作目录展开；未配置 `log.file` 时退回 `logread`），行内 ISO 8601 UTC 时间戳统一换算成 `+08:00` 显示；「清空」通过 rpcd 后端原地截断日志文件（追加写安全，无需重启服务），不再只是清界面。
 
 另外为保证 Windows 上构建出的包也能直接在路由器上用：`.gitattributes` 固定源码为 LF，`scripts/check.sh` 增加行尾守卫（源文件含 CRLF 即失败）。

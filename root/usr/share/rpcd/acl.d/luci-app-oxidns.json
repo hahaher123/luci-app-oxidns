@@ -32,7 +32,8 @@
 					"rules_save",
 					"learn_reset_save",
 					"learn_reset_run",
-					"settings_save"
+					"settings_save",
+					"logs_clear"
 				]
 			}
 		}

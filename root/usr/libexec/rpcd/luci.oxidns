@@ -343,6 +343,41 @@ config_api_listen() {
 	' "$CONFIG_PATH" | yaml_scalar_clean
 }
 
+config_log_file() {
+	[ -r "$CONFIG_PATH" ] || return 1
+	awk '
+		/^[^[:space:]#][^:]*:/ {
+			top = $0;
+			sub(/:.*/, "", top);
+		}
+		top == "log" && /^[[:space:]]+file:[[:space:]]*[^[:space:]#]/ {
+			sub(/^[[:space:]]+file:[[:space:]]*/, "", $0);
+			print $0;
+			exit;
+		}
+	' "$CONFIG_PATH" | yaml_scalar_clean
+}
+
+# 日志文件解析：config.yaml 的 log.file（相对路径按上游语义基于 working_dir 展开）；
+# 未配置时退回默认路径 /var/log/oxidns.log
+resolve_log_file() {
+	load_settings
+	LOG_FILE_CONFIGURED=0
+	LOG_FILE=""
+	if [ -r "$CONFIG_PATH" ]; then
+		LOG_FILE="$(config_log_file || true)"
+	fi
+	if [ -n "$LOG_FILE" ]; then
+		LOG_FILE_CONFIGURED=1
+		case "$LOG_FILE" in
+			/*) ;;
+			*) LOG_FILE="$WORKING_DIR/${LOG_FILE#./}" ;;
+		esac
+	else
+		LOG_FILE="/var/log/oxidns.log"
+	fi
+}
+
 webui_url_from_config() {
 	LISTEN="$(config_api_listen || true)"
 	[ -n "$LISTEN" ] || return 1
@@ -1453,6 +1488,16 @@ read_logread_logs() {
 	' | tail -n "$LIMIT" > "$OUT_FILE" || true
 }
 
+read_log_file_logs() {
+	LOG_PATH="$1"
+	LIMIT="$2"
+	OUT_FILE="$3"
+	: > "$OUT_FILE"
+	[ -f "$LOG_PATH" ] || return 1
+	tail -n "$LIMIT" "$LOG_PATH" > "$OUT_FILE" 2>/dev/null || return 1
+	return 0
+}
+
 emit_logs_recent() {
 	INPUT="$(cat)"
 	LIMIT="$(input_value limit "$INPUT")"
@@ -1460,10 +1505,62 @@ emit_logs_recent() {
 	case "$LIMIT" in
 		*[!0-9]*|'') LIMIT=200 ;;
 	esac
+	resolve_log_file
 	TMP_FILE="$(mktemp "$TMP_ROOT/oxidns-logs.XXXXXX")"
-	read_logread_logs "$LIMIT" "$TMP_FILE" || true
-	emit_log_lines_json "logread" "$TMP_FILE"
+	SOURCE="logread"
+	if [ "$LOG_FILE_CONFIGURED" = "1" ]; then
+		# config.yaml 配置了 log.file：日志以文件为准，读不到（尚未产生）就返回空
+		read_log_file_logs "$LOG_FILE" "$LIMIT" "$TMP_FILE" || true
+		SOURCE="file"
+	else
+		# 未配置 log.file：oxidns 走 syslog，退回 logread
+		read_logread_logs "$LIMIT" "$TMP_FILE" || true
+	fi
+	emit_log_lines_json "$SOURCE" "$TMP_FILE"
 	rm -f "$TMP_FILE"
+}
+
+# 清空日志文件内容：原地截断（oxidns 追加写，截断后从新 EOF 续写，无需重启）
+emit_logs_clear() {
+	resolve_log_file
+	if path_has_parent_ref "$LOG_FILE"; then
+		json_error "invalid_log_file" "log file path must not contain '..'"
+		return 1
+	fi
+	case "$LOG_FILE" in
+		/*) ;;
+		*)
+			json_error "invalid_log_file" "log file path must be absolute"
+			return 1
+			;;
+	esac
+	if [ "$LOG_FILE" != "/var/log/oxidns.log" ] && ! oxidns_named_path "$LOG_FILE"; then
+		json_error "invalid_log_file" "refusing to clear a file that is not an oxidns log"
+		return 1
+	fi
+	if [ -L "$LOG_FILE" ]; then
+		json_error "invalid_log_file" "refusing to clear a symbolic link"
+		return 1
+	fi
+	if [ ! -f "$LOG_FILE" ]; then
+		printf '{"ok":true,'
+		json_field_string path "$LOG_FILE"
+		printf ',"existed":false'
+		printf ',"cleared_bytes":"0"'
+		printf '}\n'
+		return 0
+	fi
+	CLEARED_SIZE="$(file_size_bytes "$LOG_FILE")"
+	if ! : > "$LOG_FILE"; then
+		json_error "log_clear_failed" "unable to truncate $LOG_FILE"
+		return 1
+	fi
+	printf '{"ok":true,'
+	json_field_string path "$LOG_FILE"
+	printf ',"existed":true'
+	printf ',"cleared_bytes":'
+	json_string "$CLEARED_SIZE"
+	printf '}\n'
 }
 
 read_error_detail_file() {
@@ -2391,7 +2488,8 @@ case "${1:-}" in
 		printf '"learn_reset_get":{},'
 		printf '"learn_reset_save":{"reset_cn":"boolean","reset_proxy":"boolean","freq":"string","time":"string","weekday":"string","api_url":"string","api_user":"string","api_pass":"string"},'
 		printf '"learn_reset_run":{},'
-		printf '"logs_recent":{"limit":"number"}'
+		printf '"logs_recent":{"limit":"number"},'
+		printf '"logs_clear":{}'
 		printf '}\n'
 		;;
 	call)
@@ -2464,6 +2562,9 @@ case "${1:-}" in
 				;;
 			logs_recent)
 				emit_logs_recent
+				;;
+			logs_clear)
+				emit_logs_clear
 				;;
 			*)
 				printf '{"ok":false,"error":"unknown method"}\n'
