@@ -46,8 +46,13 @@ fi
 
 # SDK 编译出的 apk 文件名是 <包名>-<版本>-r<修订>.apk（无 _all 后缀，那是
 # apk-tools 2.x 的命名习惯）。
+#
+# 翻译包按 glob 找、不按版本拼名字：它的版本由 luci.mk 的 PKG_PO_VERSION 定，
+# 万一哪天 Makefile 里的钉法失效，这里也不该报「artifact 缺失」这种误导性的错，
+# 而应该让它带着真实版本号进到下面 --same-version 的断言里，报出真正的原因。
 APP_APK="${OUT_DIR}/luci-app-oxidns-${PKG_VERSION}-r${PKG_RELEASE}.apk"
-I18N_APK="${OUT_DIR}/luci-i18n-oxidns-zh-cn-${PKG_VERSION}-r${PKG_RELEASE}.apk"
+
+I18N_GLOB="${OUT_DIR}/luci-i18n-oxidns-zh-cn-*.apk"
 
 need_cmd() {
 	command -v "$1" >/dev/null 2>&1 || {
@@ -80,24 +85,44 @@ fi
 	exit 1
 }
 
-for f in "$APP_APK" "$I18N_APK"; do
-	if [ ! -f "$f" ]; then
-		printf 'missing artifact: %s\n' "$f" >&2
-		printf -- '--- %s 里实际有什么 ---\n' "$OUT_DIR" >&2
+[ -f "$APP_APK" ] || {
+	printf 'missing artifact: %s\n' "$APP_APK" >&2
+	printf -- '--- %s 里实际有什么 ---\n' "$OUT_DIR" >&2
+	ls -l "$OUT_DIR" >&2 || true
+	exit 1
+}
+
+# 翻译包：glob 出来要求恰好一个。同一个语言只会产出一个，多了说明产物目录脏了。
+I18N_APK=""
+for f in $I18N_GLOB; do
+	[ -f "$f" ] || continue
+	if [ -n "$I18N_APK" ]; then
+		printf 'artifact 不唯一：%s 与 %s\n' "$I18N_APK" "$f" >&2
 		ls -l "$OUT_DIR" >&2 || true
 		exit 1
 	fi
+	I18N_APK="$f"
 done
+[ -n "$I18N_APK" ] || {
+	printf 'missing artifact: 没有任何 %s\n' "$I18N_GLOB" >&2
+	printf -- '--- %s 里实际有什么 ---\n' "$OUT_DIR" >&2
+	ls -l "$OUT_DIR" >&2 || true
+	exit 1
+}
 
 # 1) 容器格式、pkgname、arch，以及必须落进包里的成员。
 #
 # --contains 用的是在 ADB 元数据流里直接可见的片段：ADB 的文件条目按目录栈
 # 分段记录（例如先出现 "usr/share/luci"，再出现 "menu.d"），完整路径并不作为
 # 一个连续字符串存在，所以这里断言的是目录段与文件名，而不是整条路径。
+#
+# --same-version 盯着翻译包的版本号：它来自 luci.mk 的 PKG_PO_VERSION，
+# Makefile 忘了钉就会退化成 LuCI feed 的日期版本（形如 26.263.19088~0985e71）。
 "$PYTHON" "$SCRIPT_DIR/check-apk.py" \
 	--name luci-app-oxidns \
 	--name luci-i18n-oxidns-zh-cn \
 	--arch noarch \
+	--same-version \
 	--contains etc/config \
 	--contains etc/init.d \
 	--contains luci.oxidns \
