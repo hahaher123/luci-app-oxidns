@@ -134,10 +134,23 @@ done
 	"$APP_APK" "$I18N_APK"
 
 # 2) 用 apk-tools 3 自带的 apk 建一次索引：ImageBuilder 拼装时走的正是
-#    `apk mkndx` 这条路，能建出索引才说明这两个包真的会被装进镜像。
-#    拿不到 apk 二进制（例如在 Windows 本地跑）就跳过，只做提示。
+#    `apk mkndx` 这条路（OpenWrt 的 package/index 目标也是它），能建出索引
+#    才说明这两个包真的会被装进镜像。
+#
+#    只有本机确实能拿到 apk 二进制时才跑。CI 里拿不到：SDK 是在容器内编译的，
+#    apk 待在容器的 staging_dir/host/bin 下，而容器只把 bin/ 搬到 /artifacts，
+#    staging_dir/ 从不落到宿主工作区。CI 那份 mkndx 校验由 gh-action-sdk 的
+#    INDEX=1（`make package/index`）在容器里完成，用的是同一套 apk。
+#
+#    APK_BIN 显式给了却不可执行，要当场报错：放着不管只会在后面变成一句
+#    没头没尾的 `... not found`（exit 127），查起来贵得多。
 APK_BIN="${APK_BIN:-}"
-if [ -z "$APK_BIN" ] && [ -x staging_dir/host/bin/apk ]; then
+if [ -n "$APK_BIN" ]; then
+	if [ ! -x "$APK_BIN" ]; then
+		printf 'APK_BIN 指向的不是可执行文件：%s\n' "$APK_BIN" >&2
+		exit 1
+	fi
+elif [ -x staging_dir/host/bin/apk ]; then
 	APK_BIN="staging_dir/host/bin/apk"
 fi
 if [ -n "$APK_BIN" ]; then
@@ -157,7 +170,7 @@ if [ -n "$APK_BIN" ]; then
 	printf 'apk mkndx OK（索引 %s 字节）\n' "$(wc -c < "$IDX_DIR/packages.adb" | tr -d ' ')"
 	rm -rf "$IDX_DIR"
 else
-	printf 'note: 没有找到 apk 二进制，跳过 mkndx 检查（CI 里会执行）\n'
+	printf 'note: 本机没有可用的 apk 二进制，跳过 mkndx 检查（CI 里由 SDK 的 INDEX=1 承担）\n'
 fi
 
 # 3) 校验和清单（发布资产之一）

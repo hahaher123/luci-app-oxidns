@@ -49,6 +49,11 @@ jobs:
           PACKAGES: ${{ env.BUILD_PACKAGES }}
           FEED_DIR: ${{ github.workspace }}
           V: s
+          # 编完顺手让 SDK 自己建一次包索引：make package/index 内部就是
+          # $(STAGING_DIR_HOST)/bin/apk mkndx + `apk adbdump`，即在容器里用
+          # apk-tools 3 校验刚编出来的包能不能被索引 —— 与设备、ImageBuilder
+          # 用的是同一套 apk。索引建不出来就说明产物有问题，拦在发布之前。
+          INDEX: '1'
 
       - name: 收集编译产物
         shell: bash
@@ -83,9 +88,9 @@ jobs:
         env:
           # 代码签出在子目录里，Makefile 要显式指定
           PKG_MAKEFILE: luci-app-oxidns/Makefile
-          # SDK 自带的 apk（x86_64 linux 二进制），用来走一遍 ImageBuilder
-          # 拼装时的 mkndx 路径
-          APK_BIN: staging_dir/host/bin/apk
+          # 这里刻意不设 APK_BIN：SDK 是在容器里编译的，容器只把 bin/ 搬到
+          # /artifacts，staging_dir/ 从不落到宿主工作区，宿主上根本没有 apk
+          # 二进制可指。mkndx 那一步由上面 SDK 动作的 INDEX=1 已经做过。
         run: luci-app-oxidns/scripts/release-check.sh "" dist
 
       - name: 上传产物
