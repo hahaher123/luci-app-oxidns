@@ -1,14 +1,36 @@
 name: CI
 
+# push / PR 时跑两件事：
+#   1) check —— 静态检查与 rpcd 契约测试，秒级完成；
+#   2) packages —— 用官方 SDK 真编一次 apk，确认改动还编得出来、产物仍是
+#      apk-tools 3 的 ADB 容器格式（见 .github/workflows/build-packages.yml）。
+#
+# packages 只在会影响到包内容的路径变动时跑：每次 push 都拉一套 SDK 不划算，
+# 而只改 README 之类的改动本来也编不出不一样的东西。
 on:
   pull_request:
+    paths:
+      - "Makefile"
+      - "htdocs/**"
+      - "root/**"
+      - "po/**"
+      - "scripts/**"
+      - ".github/workflows/**"
   push:
     branches:
       - main
+    paths:
+      - "Makefile"
+      - "htdocs/**"
+      - "root/**"
+      - "po/**"
+      - "scripts/**"
+      - ".github/workflows/**"
   workflow_dispatch:
 
 jobs:
   check:
+    name: 静态与契约检查
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -20,15 +42,10 @@ jobs:
       - name: Run static checks
         run: scripts/check.sh
 
-      - name: Build LuCI packages
-        # 版本从 Makefile 读，不写死 —— CI 构建的包必须与 Makefile 声明的版本一致。
-        run: scripts/build-luci-package.sh '' dist
-
       - name: Run integration checks
         run: scripts/integration-check.sh
 
-      - name: Upload package artifacts
-        uses: actions/upload-artifact@v7
-        with:
-          name: luci-app-oxidns-packages
-          path: dist/*
+  packages:
+    name: 编译 apk
+    needs: check
+    uses: ./.github/workflows/build-packages.yml

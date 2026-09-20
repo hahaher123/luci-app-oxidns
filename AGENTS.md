@@ -11,7 +11,7 @@ This repository does not contain the OxiDNS Rust core source code, and it does n
 - LuCI pages: overview, core binary management, configuration, rule file editing, logs, and settings.
 - rpcd backend: status, service control, boot enablement, core install/reinstall/upload/remove actions, config read/write/validate, rule file read/write, log access, and LuCI integration settings.
 - Target mapping contract files used to align supported OpenWrt architectures with OxiDNS release targets.
-- LuCI package builds: local scripts can produce `luci-app-oxidns` `ipk` and `apk` artifacts.
+- LuCI package builds: released artifacts are compiled by the official OpenWrt SDK (`.github/workflows/build-packages.yml`) into the apk-tools 3 ADB container format used by OpenWrt 25.12, so devices and the official ImageBuilder can consume them directly. `scripts/build-luci-package.sh` can still produce `ipk` and apk-tools 2.x style `.apk` locally for offline testing, but that output is not the release format and must not be used to assemble ImageBuilder images.
 - Internationalization: Simplified Chinese translations are shipped as `luci-i18n-oxidns-zh-cn`.
 
 ## Repository Relationships
@@ -36,15 +36,19 @@ This repository does not contain the OxiDNS Rust core source code, and it does n
 - `root/usr/share/rpcd/acl.d/luci-app-oxidns.json`: rpcd ACL.
 - `root/usr/share/oxidns/`: OxiDNS LuCI contract files such as target mappings.
 - `po/zh_Hans/oxidns.po`: Simplified Chinese translation.
-- `scripts/build-luci-package.sh`: local LuCI package build script.
-- `scripts/check.sh`, `scripts/integration-check.sh`, `scripts/release-check.sh`: local validation entry points.
+- `scripts/build-luci-package.sh`: local (offline) LuCI package build script; produces `ipk` / apk-tools 2.x `.apk` for testing, not for release.
+- `scripts/check-apk.py`: verifies that a `.apk` is an apk-tools 3 ADB container and asserts its package name / architecture / members.
+- `scripts/check.sh`, `scripts/integration-check.sh`, `scripts/release-check.sh`: local validation entry points. `release-check.sh` validates already-built artifacts in a dist directory (it no longer builds anything).
 
 ## Common Validation
 
 ```sh
 scripts/check.sh
 scripts/integration-check.sh
-scripts/release-check.sh 0.1.4 /tmp/luci-app-oxidns-release-check
+
+# release-check.sh no longer builds; point it at a dist directory that already
+# holds SDK-built artifacts (see .github/workflows/build-packages.yml).
+scripts/release-check.sh v0.1.4-r4 dist
 ```
 
 ## Commit Notes

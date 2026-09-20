@@ -16,37 +16,38 @@ OxiDNS 的 OpenWrt / LuCI 管理插件。安装后 LuCI 出现 `Services -> OxiD
 **1. 取包** —— 从本仓库 Release 下载：
 
 ```sh
-curl -fsSLO https://github.com/hahaher123/luci-app-oxidns/releases/download/v0.1.4-r3/luci-app-oxidns_0.1.4-r3_all.apk
-curl -fsSLO https://github.com/hahaher123/luci-app-oxidns/releases/download/v0.1.4-r3/luci-i18n-oxidns-zh-cn_0.1.4-r3_all.apk
+curl -fsSLO https://github.com/hahaher123/luci-app-oxidns/releases/download/v0.1.4-r4/luci-app-oxidns-0.1.4-r4.apk
+curl -fsSLO https://github.com/hahaher123/luci-app-oxidns/releases/download/v0.1.4-r4/luci-i18n-oxidns-zh-cn-0.1.4-r4.apk
 ```
 
-`opkg` 系统把 `.apk` 换成 `.ipk`；想固定取最新一版可用 `releases/latest/download/<文件名>`；校验和见 Release 里的 `sha256sums.txt`。
+想固定取最新一版可用 `releases/latest/download/<文件名>`；校验和见 Release 里的 `sha256sums.txt`。
 
-Release tag 为 `v<PKG_VERSION>-r<PKG_RELEASE>`，与包文件名里的完整版本号一一对应（如 tag `v0.1.4-r3` ↔ 包 `luci-app-oxidns_0.1.4-r3_all.apk`）。历史上 `v0.1.2` 这类不带 `-r` 的 tag 是旧规则产物，资产是 `0.1.2-r1` 的那两个包。
+Release 资产是用官方 OpenWrt SDK 编译出的 25.12 `apk`（apk-tools 3 的 ADB 容器格式），与官方 feed 里的包同格式：设备上的 `apk` 能装，ImageBuilder 的 `apk mkndx` / `apk add` 也能索引安装，可以直接拼进自建固件。`opkg` 系统（24.10 及更早）用的 `ipk` 不再随 Release 发布，需要时按下面「自己构建」里的离线方式产出。
+
+Release tag 为 `v<PKG_VERSION>-r<PKG_RELEASE>`，与包文件名里的完整版本号一一对应（如 tag `v0.1.4-r4` ↔ 包 `luci-app-oxidns-0.1.4-r4.apk`）。`v0.1.4-r3` 及更早的资产是本地脚本拼的，文件名形如 `luci-app-oxidns_0.1.4-r3_all.apk`（下划线加 `_all`），命名与现在不同；`v0.1.2` 这类不带 `-r` 的 tag 更早，属旧规则产物。
 
 版本号约定：修 bug / 调整已安装文件只升 `PKG_RELEASE`；新增功能才升 `PKG_VERSION`（同时把 `PKG_RELEASE` 重置为 `1`）；只改文档或 CI 不动版本号。
 
 发布规则：`Makefile` 里的版本号变更推到 `main` 后自动编译并发布 Release，Release 说明取自触发该次发布的 commit 信息（约定 commit 描述本次变动内容）；tag 已存在时自动跳过，不会覆盖。也可在 Actions 手动 dispatch（可显式指定版本）。
 
-也可以自己构建（需要 `tar`、`gzip`、`node`、`sha256sum`）：
+**自己构建**有两条路。发布格式（apk-tools 3 的 ADB 容器）只能由官方 SDK 编出来，CI 走的就是这条路（`.github/workflows/build-packages.yml`），本地复现需要 Linux / Docker 环境。
+
+只想在设备上快速试装、不想等 SDK，可以用本地脚本：它不需要 SDK，Windows 上也能跑（需要 `tar`、`gzip`、`node`、`sha256sum`）：
 
 ```sh
 scripts/build-luci-package.sh '' dist
 ```
 
-留空参数时默认取 `Makefile` 里的 `PKG_VERSION` / `PKG_RELEASE`，产物写在 `dist/`；也可以显式给版本与修订号：`scripts/build-luci-package.sh 0.1.4 dist 3`。
+留空参数时默认取 `Makefile` 里的 `PKG_VERSION` / `PKG_RELEASE`，产物写在 `dist/`；也可以显式给版本与修订号：`scripts/build-luci-package.sh 0.1.4 dist 4`。注意这条路产出的是 apk-tools 2.x 风格的包：在设备上 `apk add --allow-untrusted` 装得上，但它**不是**发布格式，也别拿去拼 ImageBuilder 自建固件（过不了 `apk mkndx` 建索引这一关）。
 
 **2. 装到路由器** —— 把包拷上去后：
 
 ```sh
-# apk 系统
-apk add --allow-untrusted --no-network ./luci-app-oxidns_0.1.4-r3_all.apk
-apk add --allow-untrusted --no-network ./luci-i18n-oxidns-zh-cn_0.1.4-r3_all.apk
-
-# opkg 系统
-opkg install ./luci-app-oxidns_0.1.4-r3_all.ipk
-opkg install ./luci-i18n-oxidns-zh-cn_0.1.4-r3_all.ipk
+apk add --allow-untrusted --no-network ./luci-app-oxidns-0.1.4-r4.apk
+apk add --allow-untrusted --no-network ./luci-i18n-oxidns-zh-cn-0.1.4-r4.apk
 ```
+
+`opkg` 系统（24.10 及更早）用本地脚本产出的 `ipk`：`opkg install ./luci-app-oxidns_0.1.4-r4_all.ipk`。
 
 本分支包版本 `0.1.4` 高于上游 `v0.1.0`，装到已装过上游包的机器上属于普通升级，不需要 `--force-reinstall`。
 

@@ -1,10 +1,14 @@
 name: Release
 
 # 发布规则：Makefile 里的 PKG_VERSION / PKG_RELEASE 变更并推到 main 后，
-# 自动编译并发布 Release（tag = v<PKG_VERSION>-r<PKG_RELEASE>，如 v0.1.2-r2），
+# 自动编译并发布 Release（tag = v<PKG_VERSION>-r<PKG_RELEASE>，如 v0.1.4-r4），
 # Release 说明取自触发这次变更的 commit 信息（即「commit 为本次变动内容」）。
 # tag 已存在时跳过（幂等，不会覆盖已有 Release）。
-# scripts/release-check.sh 会校验 tag 与 Makefile 一致，不一致直接失败。
+#
+# 编译走 .github/workflows/build-packages.yml（官方 OpenWrt SDK），产物是
+# OpenWrt 25.12 的 apk（apk-tools 3 的 ADB 容器格式），设备上的 apk 与
+# ImageBuilder 都能直接用。
+#
 # 手动 dispatch（可显式给版本）与推 tag 触发保留。
 on:
   push:
@@ -17,7 +21,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: '要发布的版本（v0.1.2 或 v0.1.2-r2）；留空则按 Makefile 的 PKG_VERSION/PKG_RELEASE 生成'
+        description: '要发布的版本（v0.1.4 或 v0.1.4-r4）；留空则按 Makefile 的 PKG_VERSION/PKG_RELEASE 生成'
         required: false
         default: ''
 
@@ -25,16 +29,16 @@ permissions:
   contents: write
 
 jobs:
-  release:
+  prepare:
+    name: 解析版本
     runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.version.outputs.value }}
+      build: ${{ steps.guard.outputs.build }}
     steps:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-
-      - uses: actions/setup-node@v6
-        with:
-          node-version: 22
 
       - name: Resolve version
         id: version
@@ -64,16 +68,43 @@ jobs:
         run: |
           set -euo pipefail
           if git ls-remote --exit-code --tags origin "refs/tags/${TAG}" >/dev/null 2>&1; then
-            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "build=false" >> "$GITHUB_OUTPUT"
             echo "tag ${TAG} already exists, nothing to release"
           else
-            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "build=true" >> "$GITHUB_OUTPUT"
             echo "tag ${TAG} is new, proceeding"
           fi
 
+  packages:
+    name: 编译 apk
+    needs: prepare
+    if: needs.prepare.outputs.build == 'true'
+    uses: ./.github/workflows/build-packages.yml
+
+  release:
+    name: 发布 Release
+    needs: [prepare, packages]
+    if: needs.prepare.outputs.build == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: 下载编译产物
+        uses: actions/download-artifact@v8
+        with:
+          name: luci-app-oxidns-apk
+          path: dist
+
+      - name: 再校验一次产物（顺带确认 tag 与 Makefile 一致）
+        shell: bash
+        env:
+          TAG: ${{ needs.prepare.outputs.tag }}
+        run: scripts/release-check.sh "$TAG" dist
+
       - name: Collect release notes from the commit message
         id: body
-        if: steps.guard.outputs.exists == 'false'
         shell: bash
         run: |
           set -euo pipefail
@@ -86,17 +117,11 @@ jobs:
             echo "RELEASE_NOTES_EOF"
           } >> "$GITHUB_OUTPUT"
 
-      - name: Run release checks and build packages
-        if: steps.guard.outputs.exists == 'false'
-        run: scripts/release-check.sh "${{ steps.version.outputs.value }}" dist
-
       - name: Publish release
-        if: steps.guard.outputs.exists == 'false'
         uses: softprops/action-gh-release@v3
         with:
-          tag_name: ${{ steps.version.outputs.value }}
+          tag_name: ${{ needs.prepare.outputs.tag }}
           body: ${{ steps.body.outputs.body }}
           files: |
-            dist/*.ipk
             dist/*.apk
             dist/sha256sums.txt
