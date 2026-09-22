@@ -11,7 +11,8 @@
 					"rules_list",
 					"rules_read",
 					"learn_reset_get",
-					"logs_recent"
+					"logs_recent",
+					"hijack_get"
 				]
 			}
 		},
@@ -33,7 +34,8 @@
 					"learn_reset_save",
 					"learn_reset_run",
 					"settings_save",
-					"logs_clear"
+					"logs_clear",
+					"hijack_save"
 				]
 			}
 		}

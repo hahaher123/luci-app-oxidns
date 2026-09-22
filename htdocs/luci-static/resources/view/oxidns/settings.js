@@ -25,6 +25,19 @@ var callSettingsSave = rpc.declare({
 	expect: {}
 });
 
+var callHijackGet = rpc.declare({
+	object: 'luci.oxidns',
+	method: 'hijack_get',
+	expect: {}
+});
+
+var callHijackSave = rpc.declare({
+	object: 'luci.oxidns',
+	method: 'hijack_save',
+	params: [ 'enabled' ],
+	expect: {}
+});
+
 function field(id) {
 	var node = document.getElementById(id);
 	return node ? node.value : '';
@@ -177,12 +190,66 @@ function saveSettings() {
 	});
 }
 
+function hijackPortText(hijack) {
+	if (!hijack || (hijack.udp_port == null && hijack.tcp_port == null))
+		return _('No OxiDNS DNS listener could be detected in config.yaml.');
+	if (hijack.udp_port != null && hijack.udp_port === hijack.tcp_port)
+		return _('Detected OxiDNS DNS listener: port %s (TCP/UDP).').format(hijack.udp_port);
+	return _('Detected OxiDNS DNS listeners: UDP port %s, TCP port %s.')
+		.format(hijack.udp_port == null ? '-' : hijack.udp_port,
+			hijack.tcp_port == null ? '-' : hijack.tcp_port);
+}
+
+function setHijackStatus(message, danger) {
+	var node = document.getElementById('oxidns-hijack-status');
+	if (!node)
+		return;
+	node.textContent = message || '';
+	node.className = danger ? 'alert-message error' : 'alert-message info';
+}
+
+function saveHijack() {
+	var box = document.getElementById('oxidns-hijack-enabled');
+	var enabled = !!(box && box.checked);
+
+	ui.showModal(_('OxiDNS'), [
+		E('p', {}, _('Applying DNS hijack...'))
+	]);
+
+	return L.resolveDefault(callHijackSave(enabled), null).then(function(result) {
+		ui.hideModal();
+		if (!result || result.ok === false) {
+			setHijackStatus((result && (result.message || result.error)) || _('Failed to apply DNS hijack'), true);
+			return;
+		}
+		if (box)
+			box.checked = !!result.enabled;
+		if (result.warn === 'firewall_reload_failed') {
+			setHijackStatus(_('Rules were written, but the firewall reload failed. The rules take effect on the next firewall reload or reboot.'), true);
+			return;
+		}
+		setHijackStatus(result.enabled
+			? _('DNS hijack enabled. LAN port 53 requests are redirected to OxiDNS.')
+			: _('DNS hijack disabled.'), false);
+	}).catch(function(err) {
+		ui.hideModal();
+		setHijackStatus(err.message || String(err), true);
+	});
+}
+
 return view.extend({
 	load: function() {
-		return L.resolveDefault(callSettingsRead(), {});
+		return Promise.all([
+			L.resolveDefault(callSettingsRead(), {}),
+			L.resolveDefault(callHijackGet(), {})
+		]).then(function(results) {
+			return { settings: results[0], hijack: results[1] };
+		});
 	},
 
-	render: function(settings) {
+	render: function(data) {
+		var settings = data.settings || {};
+		var hijack = data.hijack || {};
 		return E('div', { 'class': 'cbi-map' }, [
 			E('h2', {}, _('OxiDNS Settings')),
 			E('div', { 'class': 'cbi-map-descr' },
@@ -218,6 +285,31 @@ return view.extend({
 					}, _('Save Settings'))
 				]),
 				E('div', { 'id': 'oxidns-settings-status', 'style': 'margin-top: 1em;' })
+			]),
+			E('div', { 'class': 'cbi-section' }, [
+				E('h3', {}, _('DNS hijack')),
+				E('div', { 'class': 'cbi-map-descr' },
+					_('Redirect LAN DNS requests to port 53 (TCP and UDP, IPv4 and IPv6) to the local OxiDNS DNS listener. The target port is parsed from the OxiDNS config.yaml; implemented as an fw4 firewall redirect, so lookups made by the router itself are not affected.')),
+				E('div', { 'class': 'cbi-value-description' }, hijackPortText(hijack)),
+				E('label', { 'style': 'display: block; margin: .5em 0;' }, [
+					E('input', {
+						'id': 'oxidns-hijack-enabled',
+						'type': 'checkbox',
+						'checked': hijack.enabled ? 'checked' : null,
+						'style': 'margin-right: .5em;'
+					}),
+					_('Enable DNS hijack')
+				]),
+				E('div', { 'class': 'cbi-button-row' }, [
+					E('button', {
+						'class': 'btn cbi-button cbi-button-positive',
+						'click': function(ev) {
+							ev.preventDefault();
+							return saveHijack();
+						}
+					}, _('Apply'))
+				]),
+				E('div', { 'id': 'oxidns-hijack-status', 'style': 'margin-top: 1em;' })
 			])
 		]);
 	},

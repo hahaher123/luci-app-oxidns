@@ -1,12 +1,7 @@
+
+
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bit\n"
 
 msgid "A token is currently configured. Enter a new value to replace it."
 msgstr ""
@@ -21,6 +16,10 @@ msgid "API password"
 msgstr ""
 
 msgid "API username"
+msgstr ""
+msgid "Apply"
+msgstr ""
+msgid "Applying DNS hijack..."
 msgstr ""
 
 msgid "Applying service action..."
@@ -118,6 +117,10 @@ msgstr ""
 
 msgid "Details"
 msgstr ""
+msgid "Detected OxiDNS DNS listener: port %s (TCP/UDP)."
+msgstr ""
+msgid "Detected OxiDNS DNS listeners: UDP port %s, TCP port %s."
+msgstr ""
 
 msgid "Disable"
 msgstr ""
@@ -129,6 +132,12 @@ msgid "Discard unsaved changes and load another file?"
 msgstr ""
 
 msgid "Discard unsaved changes and reload this file?"
+msgstr ""
+msgid "DNS hijack"
+msgstr ""
+msgid "DNS hijack disabled."
+msgstr ""
+msgid "DNS hijack enabled. LAN port 53 requests are redirected to OxiDNS."
 msgstr ""
 
 msgid "Download core archive"
@@ -154,6 +163,8 @@ msgstr ""
 
 msgid "Enable"
 msgstr ""
+msgid "Enable DNS hijack"
+msgstr ""
 
 msgid "Error"
 msgstr ""
@@ -162,6 +173,8 @@ msgid "Error code"
 msgstr ""
 
 msgid "Example: http://127.0.0.1:7890"
+msgstr ""
+msgid "Failed to apply DNS hijack"
 msgstr ""
 
 msgid "Failed to save settings"
@@ -250,6 +263,8 @@ msgstr ""
 
 msgid "No"
 msgstr ""
+msgid "No OxiDNS DNS listener could be detected in config.yaml."
+msgstr ""
 
 msgid "No rule files were found in the rule directory."
 msgstr ""
@@ -316,6 +331,8 @@ msgstr ""
 
 msgid "Redirect"
 msgstr ""
+msgid "Redirect LAN DNS requests to port 53 (TCP and UDP, IPv4 and IPv6) to the local OxiDNS DNS listener. The target port is parsed from the OxiDNS config.yaml; implemented as an fw4 firewall redirect, so lookups made by the router itself are not affected."
+msgstr ""
 
 msgid "Refresh"
 msgstr ""
@@ -378,6 +395,8 @@ msgid "Rule file saved and service restarted"
 msgstr ""
 
 msgid "Rule Files"
+msgstr ""
+msgid "Rules were written, but the firewall reload failed. The rules take effect on the next firewall reload or reboot."
 msgstr ""
 
 msgid "Running"

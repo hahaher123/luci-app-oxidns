@@ -24,6 +24,15 @@ CORE_PROGRESS_LOG="$CORE_PROGRESS_DIR/core-progress.log"
 CORE_LOCK_DIR="$CORE_PROGRESS_DIR/core-operation.lock"
 CORE_LOCK_HELD=0
 
+# DNS 劫持：状态唯一事实源是 /etc/config/firewall 里的 oxidns_hijack* 段
+# （存在 = 已开启）。段形如 target DNAT + 无 dest_ip，fw4 渲染为
+# nft `redirect to :<dest_port>`（iptables REDIRECT --to-ports 的 nft 等价）。
+FIREWALL_INIT="${OXIDNS_FIREWALL_INIT:-/etc/init.d/firewall}"
+HIJACK_SECT_BOTH="oxidns_hijack"
+HIJACK_SECT_UDP="oxidns_hijack_udp"
+HIJACK_SECT_TCP="oxidns_hijack_tcp"
+HIJACK_MARK="oxidns-dns-hijack"
+
 CONFIG_PATH="$DEFAULT_CONFIG_PATH"
 WORKING_DIR="$DEFAULT_WORKING_DIR"
 RULES_DIR="$DEFAULT_RULES_DIR"
@@ -358,6 +367,74 @@ config_log_file() {
 	' "$CONFIG_PATH" | yaml_scalar_clean
 }
 
+# 解析 config.yaml 里 plugins 列表的 udp_server / tcp_server 监听地址。
+# 每类取第一个，输出形如 "udp_server :5335" / "tcp_server :53"，未配置的不输出。
+config_dns_listen() {
+	[ -r "$CONFIG_PATH" ] || return 1
+	awk '
+		/^[^[:space:]#][^:]*:/ {
+			top = $0;
+			sub(/:.*/, "", top);
+		}
+		top != "plugins" { next }
+		/^[[:space:]]*-[[:space:]]/ {
+			item_type = "";
+			in_args = 0;
+			got = 0;
+		}
+		!got && /^[[:space:]]+type:[[:space:]]*[^[:space:]#]/ {
+			t = $0;
+			sub(/^[[:space:]]+type:[[:space:]]*/, "", t);
+			sub(/[[:space:]].*$/, "", t);
+			if (t == "udp_server" || t == "tcp_server")
+				item_type = t;
+		}
+		/^[[:space:]]+args:/ { in_args = 1 }
+		item_type != "" && in_args && !got && /^[[:space:]]+listen:[[:space:]]*[^[:space:]#]/ {
+			l = $0;
+			sub(/^[[:space:]]+listen:[[:space:]]*/, "", l);
+			sub(/[[:space:]]*(#.*)?$/, "", l);
+			gsub(/"/, "", l);
+			print item_type " " l;
+			got = 1;
+		}
+	' "$CONFIG_PATH"
+}
+
+# 从监听地址提取端口（":53" / "0.0.0.0:53" / "[::]:53" → 53）
+hijack_port_of_listen() {
+	[ -n "$1" ] || return 1
+	L="$(printf '%s' "$1" | yaml_scalar_clean)"
+	case "$L" in
+		*:*) PORT="${L##*:}" ;;
+		*) PORT="$L" ;;
+	esac
+	case "$PORT" in
+		''|*[!0-9]*) return 1 ;;
+	esac
+	if [ "$PORT" -lt 1 ] || [ "$PORT" -gt 65535 ]; then
+		return 1
+	fi
+	printf '%s' "$PORT"
+}
+
+# 从 config.yaml 解析 DNS 监听端口 → DNS_UDP_PORT / DNS_TCP_PORT（解析不到为空）
+# 注意：这里用 awk 匹配即 exit 取首行，不用 "sed | head"——MSYS 下该组合会随机死锁。
+resolve_dns_ports() {
+	DNS_UDP_PORT=""
+	DNS_TCP_PORT=""
+	[ -r "$CONFIG_PATH" ] || return 1
+	RAW="$(config_dns_listen || true)"
+	UDP_LISTEN="$(printf '%s\n' "$RAW" | awk '/^udp_server /{sub(/^udp_server /,"");print;exit}')"
+	TCP_LISTEN="$(printf '%s\n' "$RAW" | awk '/^tcp_server /{sub(/^tcp_server /,"");print;exit}')"
+	DNS_UDP_PORT="$(hijack_port_of_listen "$UDP_LISTEN" || true)"
+	DNS_TCP_PORT="$(hijack_port_of_listen "$TCP_LISTEN" || true)"
+	if [ -z "$DNS_UDP_PORT" ] && [ -z "$DNS_TCP_PORT" ]; then
+		return 1
+	fi
+	return 0
+}
+
 # 日志文件解析：config.yaml 的 log.file（相对路径按上游语义基于 working_dir 展开）；
 # 未配置时退回默认路径 /var/log/oxidns.log
 resolve_log_file() {
@@ -677,6 +754,127 @@ settings_value() {
 		return 1
 	fi
 	printf '%s' "$VALUE"
+}
+
+# ===== DNS 劫持（fw4 redirect：LAN :53 → 本机 oxidns DNS 端口）=====
+
+hijack_managed_sections() {
+	for SECT in "$HIJACK_SECT_BOTH" "$HIJACK_SECT_UDP" "$HIJACK_SECT_TCP"; do
+		if uci -q get "firewall.$SECT" >/dev/null 2>&1; then
+			printf '%s\n' "$SECT"
+		fi
+	done
+}
+
+hijack_add_section() {
+	SECT="$1"
+	PROTO="$2"
+	PORT="$3"
+	uci -q set "firewall.$SECT=redirect" || return 1
+	uci -q set "firewall.$SECT.name=$HIJACK_MARK" || return 1
+	uci -q set "firewall.$SECT.src=lan" || return 1
+	uci -q set "firewall.$SECT.proto=$PROTO" || return 1
+	uci -q set "firewall.$SECT.src_dport=53" || return 1
+	uci -q set "firewall.$SECT.dest_port=$PORT" || return 1
+	uci -q set "firewall.$SECT.target=DNAT" || return 1
+}
+
+hijack_firewall_reload() {
+	if [ -x "$FIREWALL_INIT" ]; then
+		"$FIREWALL_INIT" reload >/dev/null 2>&1
+		return $?
+	fi
+	return 1
+}
+
+# 输出状态 JSON 片段（调用方负责包一层 {"ok":true,...}）
+emit_hijack_status() {
+	RELOADED="${1:-}"
+	SECT_JSON=""
+	ENABLED=0
+	for SECT in $(hijack_managed_sections); do
+		SECT_JSON="$SECT_JSON\"$SECT\","
+		ENABLED=1
+	done
+	SECT_JSON="${SECT_JSON%,}"
+	UDP_JSON="null"
+	if [ -n "$DNS_UDP_PORT" ]; then
+		UDP_JSON="$DNS_UDP_PORT"
+	fi
+	TCP_JSON="null"
+	if [ -n "$DNS_TCP_PORT" ]; then
+		TCP_JSON="$DNS_TCP_PORT"
+	fi
+	WARN_JSON="null"
+	if [ "$RELOADED" = "0" ]; then
+		WARN_JSON='"firewall_reload_failed"'
+	fi
+	printf '"enabled":%s,"udp_port":%s,"tcp_port":%s,"sections":[%s],"reloaded":%s,"warn":%s}' \
+		"$ENABLED" "$UDP_JSON" "$TCP_JSON" "$SECT_JSON" "${RELOADED:-null}" "$WARN_JSON"
+}
+
+emit_hijack_get() {
+	if ! command -v uci >/dev/null 2>&1; then
+		json_error "uci_unavailable" "uci command not found"
+		return 1
+	fi
+	load_settings
+	resolve_dns_ports || true
+	printf '{"ok":true,'
+	emit_hijack_status
+	printf '\n'
+}
+
+emit_hijack_save() {
+	INPUT="$(cat)"
+	if ! command -v uci >/dev/null 2>&1; then
+		json_error "uci_unavailable" "uci command not found"
+		return 1
+	fi
+	load_settings
+	ENABLED="$(input_bool enabled "$INPUT")"
+	if [ -r "$CONFIG_PATH" ]; then
+		resolve_dns_ports || true
+	fi
+	if [ "$ENABLED" = "1" ] && [ -z "$DNS_UDP_PORT" ] && [ -z "$DNS_TCP_PORT" ]; then
+		json_error "no_dns_listen" "could not resolve a udp_server/tcp_server listen port from config.yaml"
+		return 1
+	fi
+	for SECT in $(hijack_managed_sections); do
+		uci -q delete "firewall.$SECT" >/dev/null 2>&1 || true
+	done
+	if [ "$ENABLED" = "1" ]; then
+		if [ -n "$DNS_UDP_PORT" ] && [ "$DNS_UDP_PORT" = "$DNS_TCP_PORT" ]; then
+			hijack_add_section "$HIJACK_SECT_BOTH" "tcp udp" "$DNS_UDP_PORT" || {
+				json_error "hijack_write_failed" "failed to add the firewall redirect section"
+				return 1
+			}
+		else
+			if [ -n "$DNS_UDP_PORT" ]; then
+				hijack_add_section "$HIJACK_SECT_UDP" "udp" "$DNS_UDP_PORT" || {
+					json_error "hijack_write_failed" "failed to add the UDP redirect section"
+					return 1
+				}
+			fi
+			if [ -n "$DNS_TCP_PORT" ]; then
+				hijack_add_section "$HIJACK_SECT_TCP" "tcp" "$DNS_TCP_PORT" || {
+					json_error "hijack_write_failed" "failed to add the TCP redirect section"
+					return 1
+				}
+			fi
+		fi
+	fi
+	if ! uci -q commit firewall; then
+		json_error "hijack_save_failed" "failed to commit firewall changes"
+		return 1
+	fi
+	RELOADED=1
+	if ! hijack_firewall_reload; then
+		RELOADED=0
+	fi
+	printf '{"ok":true,'
+	emit_hijack_status "$RELOADED"
+	printf '\n'
 }
 
 emit_settings_save() {
@@ -2489,7 +2687,9 @@ case "${1:-}" in
 		printf '"learn_reset_save":{"reset_cn":"boolean","reset_proxy":"boolean","freq":"string","time":"string","weekday":"string","api_url":"string","api_user":"string","api_pass":"string"},'
 		printf '"learn_reset_run":{},'
 		printf '"logs_recent":{"limit":"number"},'
-		printf '"logs_clear":{}'
+		printf '"logs_clear":{},'
+		printf '"hijack_get":{},'
+		printf '"hijack_save":{"enabled":"boolean"}'
 		printf '}\n'
 		;;
 	call)
@@ -2565,6 +2765,12 @@ case "${1:-}" in
 				;;
 			logs_clear)
 				emit_logs_clear
+				;;
+			hijack_get)
+				emit_hijack_get
+				;;
+			hijack_save)
+				emit_hijack_save
 				;;
 			*)
 				printf '{"ok":false,"error":"unknown method"}\n'

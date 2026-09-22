@@ -26,7 +26,7 @@ apk add --allow-untrusted --no-network ./luci-i18n-oxidns-zh-cn-<版本>.apk
 | `Configuration` | 查看、校验、保存配置文件 |
 | `Rule Files` | 编辑规则列表文件；定时重置学习文件 |
 | `Logs` | 日志文件查看，时间戳按 UTC+8 显示；「清空」截断日志文件 |
-| `Settings` | 内核源、代理、token、路径 |
+| `Settings` | 内核源、代理、token、路径；DNS 劫持开关（把局域网发往 53 端口的 DNS 请求重定向到本机 OxiDNS，目标端口从 config.yaml 解析） |
 
 配置在 `/etc/oxidns/config.yaml`，规则目录 `/etc/oxidns/rule`，工作目录 `/var/lib/oxidns`。
 
