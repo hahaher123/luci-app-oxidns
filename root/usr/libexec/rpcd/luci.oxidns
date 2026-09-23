@@ -833,6 +833,10 @@ emit_hijack_save() {
 	fi
 	load_settings
 	ENABLED="$(input_bool enabled "$INPUT")"
+	# 先给端口变量兜底：config.yaml 不可读时 resolve_dns_ports 根本不会跑，
+	# 而 set -u 下引用未绑定变量会直接终止整个后端（连 JSON 错误都发不出）。
+	DNS_UDP_PORT=""
+	DNS_TCP_PORT=""
 	if [ -r "$CONFIG_PATH" ]; then
 		resolve_dns_ports || true
 	fi

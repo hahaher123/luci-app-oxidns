@@ -9,6 +9,9 @@ msgstr ""
 msgid "Actions"
 msgstr ""
 
+msgid "Active firewall sections"
+msgstr ""
+
 msgid "API address"
 msgstr ""
 
@@ -164,6 +167,9 @@ msgstr ""
 msgid "Enable"
 msgstr ""
 msgid "Enable DNS hijack"
+msgstr ""
+
+msgid "Enabled"
 msgstr ""
 
 msgid "Error"
@@ -489,6 +495,9 @@ msgstr ""
 msgid "Start the OxiDNS service before opening WebUI."
 msgstr ""
 
+msgid "Status"
+msgstr ""
+
 msgid "Stop"
 msgstr ""
 
@@ -499,6 +508,9 @@ msgid "Sunday"
 msgstr ""
 
 msgid "Target"
+msgstr ""
+
+msgid "Target ports"
 msgstr ""
 
 msgid "The content changed since it was last checked"
