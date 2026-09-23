@@ -1,13 +1,13 @@
 name: CI
 
-# push / PR 时跑两件事：
-#   1) check —— 静态检查与 rpcd 契约测试，秒级完成；
-#   2) packages —— 用官方 SDK 真编一次 apk，确认改动还编得出来、产物仍是
-#      apk-tools 3 的 ADB 容器格式（见 .github/workflows/build-packages.yml）。
+# 只做静态检查与 rpcd 契约测试，秒级完成，不拉 SDK、不编译。
 #
-# packages 只在会影响到包内容的路径变动时跑：每次 push 都拉一套 SDK 不划算，
-# 而只改 README 之类的改动本来也编不出不一样的东西。push 触发的发版提交
-# （动了 Makefile）不重复编译 —— release.yml 会编译并发布。
+# 编译与发布只有一条路径：release.yml（Makefile 的 PKG_VERSION / PKG_RELEASE
+# 变更并推到 main 后编译一次、发一次 Release）。CI 以前还会额外编一次 apk，
+# 于是每次发版提交都会同时触发 CI 与 Release 两条编译流水线 —— 同一份代码
+# 编两遍。现在 CI 不再编译，发版就是唯一一次编译。
+#
+# PR 与手动触发都会跑检查；push 时只检查会影响行为的路径，纯文档改动不跑。
 on:
   pull_request:
     paths:
@@ -20,10 +20,8 @@ on:
   push:
     branches:
       - main
-    # 注意：这里的 paths 刻意不含 Makefile。改 Makefile 就是发版，而 release.yml
-    # 同样监听 Makefile，它会编译一次并把产物发出去 —— CI 再编一次纯属重复。
-    # pull_request 那边保留 Makefile，因为 PR 不会触发 release.yml。
     paths:
+      - "Makefile"
       - "htdocs/**"
       - "root/**"
       - "po/**"
@@ -47,17 +45,3 @@ jobs:
 
       - name: Run integration checks
         run: scripts/integration-check.sh
-
-  packages:
-    name: 编译 apk
-    needs: check
-    # 发版提交动了 Makefile，release.yml 会编译一次并发布产物 —— CI 再编一次纯属
-    # 重复（2026-09-22 起路径过滤拆不掉这种重叠：发版提交总是同时改 Makefile 和代码）。
-    # 因此 push 时按 head_commit 是否动了 Makefile 决定编不编；PR / 手动触发不受限。
-    # head_commit 的文件列表只在单提交 push 下完整 —— 本仓库发版总是单提交。
-    if: >-
-      github.event_name != 'push' ||
-      (!contains(github.event.head_commit.modified, 'Makefile') &&
-       !contains(github.event.head_commit.added, 'Makefile') &&
-       !contains(github.event.head_commit.removed, 'Makefile'))
-    uses: ./.github/workflows/build-packages.yml

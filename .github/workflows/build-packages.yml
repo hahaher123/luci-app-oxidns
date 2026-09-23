@@ -8,8 +8,8 @@ name: Build packages
 # apk-tools 2.x 风格：能装在设备上，但过不了 ImageBuilder 建索引这一关，
 # 所以拼进自建镜像时会失败。）
 #
-# 由 ci.yml 与 release.yml 共同调用：CI 里用来确认「改完还编得出来」，发版时
-# 作为发布产物的唯一来源 —— 两条路径共用同一份编译逻辑，不会各自漂移。
+# 由 release.yml 调用，是编译的唯一路径：版本号变更 → 编译一次 → 发 Release。
+# （ci.yml 只跑静态检查，不再编译。）
 on:
   workflow_call:
 

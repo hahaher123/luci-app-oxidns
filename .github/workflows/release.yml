@@ -3,13 +3,13 @@ name: Release
 # 发布规则：Makefile 里的 PKG_VERSION / PKG_RELEASE 变更并推到 main 后，
 # 自动编译并发布 Release（tag = v<PKG_VERSION>-r<PKG_RELEASE>，如 v0.1.4-r4），
 # Release 说明取自触发这次变更的 commit 信息（即「commit 为本次变动内容」）。
-# tag 已存在时跳过（幂等，不会覆盖已有 Release）。
 #
-# 编译走 .github/workflows/build-packages.yml（官方 OpenWrt SDK），产物是
-# OpenWrt 25.12 的 apk（apk-tools 3 的 ADB 容器格式），设备上的 apk 与
-# ImageBuilder 都能直接用。
+# 编译的唯一路径就是这里 —— ci.yml 不再编译，所以一次版本变更只编一次。
 #
-# 手动 dispatch（可显式给版本）与推 tag 触发保留。
+# 两道闸门都在「解析版本」任务里，任一不满足就整条流水线跳过：
+#   1) 版本没动 —— 拿这次 push 前的提交与当前提交比 PKG_VERSION/PKG_RELEASE，
+#      两者都没变就跳过。只改 Makefile 注释之类的 push 不会白编一次。
+#   2) tag 已存在 —— 幂等，不会覆盖已有 Release（重跑失败任务、补发旧版本时用）。
 on:
   push:
     branches:
@@ -34,7 +34,9 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       tag: ${{ steps.version.outputs.value }}
-      build: ${{ steps.guard.outputs.build }}
+      # 先看这次 push 有没有改版本号，再看 tag 是不是新的：都成立才编译发版。
+      # 顺序不能反 —— 版本没变时不用去问远端 tag 存不存在（少一次网络请求）。
+      build: ${{ steps.changed.outputs.build == 'true' && steps.guard.outputs.build == 'true' }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -60,8 +62,60 @@ jobs:
           echo "value=${value}" >> "$GITHUB_OUTPUT"
           echo "tag: ${value}"
 
+      # 「版本号变动后自动编译」的核心判定：版本没动就不编。
+      # 为什么不能只靠 tag 判断：push 的 paths 过滤只认「Makefile 被改了」，
+      # 改个注释也会命中，那时 tag 还是新的，照样会白编一次。
+      # 这里直接比对这次 push 前后的 PKG_VERSION / PKG_RELEASE：
+      #   - 单提交 push：GITHUB_SHA^ 就是推送前的提交，即「这一提交有没有改版本号」。
+      #   - 多提交 push：before 是推送前的最后一个提交，仍能正确判定。
+      #   - dispatch / 推 tag：没有 before 可比，跳过这层（由 tag 幂等把关）。
+      - name: Skip when the package version did not change
+        id: changed
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BEFORE: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+
+          version_of() {
+            local rev="$1"
+            local v r
+            v="$(git show "${rev}:Makefile" 2>/dev/null | sed -n 's/^PKG_VERSION:=//p' | head -n1)"
+            r="$(git show "${rev}:Makefile" 2>/dev/null | sed -n 's/^PKG_RELEASE:=//p' | head -n1)"
+            echo "${v}-r${r}"
+          }
+
+          if [ "${EVENT_NAME}" != "push" ]; then
+            echo "build=true" >> "$GITHUB_OUTPUT"
+            echo "${EVENT_NAME}: 无推送前提交可比，交由 tag 幂等判断"
+            exit 0
+          fi
+
+          # 首次推送（before 全 0）或 before 取不到时，保守起见按「变了」处理。
+          if [ -z "${BEFORE:-}" ] || [ "${BEFORE}" = "0000000000000000000000000000000000000000" ] \
+             || ! git cat-file -e "${BEFORE}^{commit}" 2>/dev/null; then
+            echo "build=true" >> "$GITHUB_OUTPUT"
+            echo "无法确定推送前的版本，按已变更处理"
+            exit 0
+          fi
+
+          prev="$(version_of "${BEFORE}")"
+          curr="$(version_of HEAD)"
+          echo "推送前: ${prev}"
+          echo "当前:   ${curr}"
+
+          if [ "${prev}" = "${curr}" ]; then
+            echo "build=false" >> "$GITHUB_OUTPUT"
+            echo "PKG_VERSION/PKG_RELEASE 没变，不编译"
+          else
+            echo "build=true" >> "$GITHUB_OUTPUT"
+            echo "版本从 ${prev} 变为 ${curr}，开始编译"
+          fi
+
       - name: Skip when the tag already exists
         id: guard
+        if: steps.changed.outputs.build == 'true'
         shell: bash
         env:
           TAG: ${{ steps.version.outputs.value }}
