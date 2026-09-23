@@ -138,7 +138,10 @@ jobs:
   release:
     name: 发布 Release
     needs: [prepare, packages]
-    if: needs.prepare.outputs.build == 'true'
+    # 只卡「版本有没有变」这道闸门，不要求 packages 成功 —— 否则「版本号变了但
+    # 这次提交没动代码」（比如提交流转、重发已发布过的版本内容）会因为 packages
+    # 被跳过而跟着不发。产物这时是空的，发出去的 Release 只带说明与 tag。
+    if: always() && needs.prepare.outputs.build == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -146,12 +149,33 @@ jobs:
           fetch-depth: 0
 
       - name: 下载编译产物
+        if: needs.packages.result == 'success'
         uses: actions/download-artifact@v8
         with:
           name: luci-app-oxidns-apk
           path: dist
 
+      # packages 被跳过（版本号变了但这次提交没改代码）时没有产物可下。
+      # packages 失败时则必须拦下来 —— 那种情况发出去的 Release 是坏的。
+      - name: 确认编译结果
+        shell: bash
+        env:
+          BUILD_RESULT: ${{ needs.packages.result }}
+        run: |
+          set -euo pipefail
+          echo "编译任务结果: ${BUILD_RESULT}"
+          case "${BUILD_RESULT}" in
+            success)
+              ls -l dist/ ;;
+            skipped)
+              echo "::notice::本次没有需要编译的改动，发布一个不带产物的版本记录" ;;
+            *)
+              echo "::error::编译任务结果异常（${BUILD_RESULT}），中止发布"
+              exit 1 ;;
+          esac
+
       - name: 再校验一次产物（顺带确认 tag 与 Makefile 一致）
+        if: needs.packages.result == 'success'
         shell: bash
         env:
           TAG: ${{ needs.prepare.outputs.tag }}
