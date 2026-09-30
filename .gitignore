@@ -4,3 +4,6 @@
 /sha256sums.txt
 .DS_Store
 .history
+
+# 本地验证脚本的临时/产物区（构建产物、打包试验、commit message 草稿等）
+/tmp/
