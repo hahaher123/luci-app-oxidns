@@ -2,7 +2,9 @@ name: Release
 
 # 发布规则：Makefile 里的 PKG_VERSION / PKG_RELEASE 变更并推到 main 后，
 # 自动编译并发布 Release（tag = v<PKG_VERSION>-r<PKG_RELEASE>，如 v0.1.4-r4），
-# Release 说明取自触发这次变更的 commit 信息（即「commit 为本次变动内容」）。
+# Release 说明 = 触发这次变更那条 commit 的 **subject**（只取一行，见下方
+# "Collect release notes"）。约定：commit 文案与 Release 文案都只说变动，
+# 正文里不该出现 body 里的根因 / 验证过程。
 #
 # 编译的唯一路径就是这里 —— ci.yml 不再编译，所以一次版本变更只编一次。
 #
@@ -181,16 +183,18 @@ jobs:
           TAG: ${{ needs.prepare.outputs.tag }}
         run: scripts/release-check.sh "$TAG" dist
 
-      - name: Collect release notes from the commit message
+      - name: Collect release notes from the commit subject
         id: body
         shell: bash
         run: |
           set -euo pipefail
-          # Release 说明 = 最近一次改动 Makefile（即版本变更）的 commit 信息全文
-          # （约定：commit 描述本次变动内容）。补发旧版本时也能取到对应的变更说明。
+          # Release 说明 = 最近一次改动 Makefile（即版本变更）那条 commit 的 subject。
+          # 只取 %s 而不是 %B：约定是 commit 与 Release 文案都只说变动，正文里不能
+          # 混进 body 里的根因 / 排查过程 / 验证矩阵。取 %s 等于在机制上锁死这一点，
+          # 以后谁写长了也不会漏到 Release 上。补发旧版本时同样取得到对应的说明。
           {
             echo "body<<RELEASE_NOTES_EOF"
-            git log -1 --pretty=format:'%B' -- Makefile
+            git log -1 --pretty=format:'%s' -- Makefile
             echo ""
             echo "RELEASE_NOTES_EOF"
           } >> "$GITHUB_OUTPUT"
