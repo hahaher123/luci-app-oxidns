@@ -45,3 +45,8 @@ jobs:
 
       - name: Run integration checks
         run: scripts/integration-check.sh
+
+      # DNS 劫持的段必须显式带 family=any，否则 fw4 按 IPv4 兜底、IPv6 不被劫持。
+      # 带缺陷注入跑：注入在临时副本上做，不动仓库文件。
+      - name: Run DNS hijack checks
+        run: scripts/hijack-check.sh --inject
