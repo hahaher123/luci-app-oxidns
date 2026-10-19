@@ -15,7 +15,7 @@ on:
 
 env:
   # 编译用 SDK。只决定用哪套工具链，产物是 PKGARCH=all 的架构无关包。
-  SDK_ARCH: x86_64-25.12.5
+  SDK_ARCH: x86_64-25.12.6
   # 本仓库被挂载为 SDK 的一个 feed，此名即输出目录名
   FEED_NAME: oxidns
   # 要编译的包目录。luci-i18n-oxidns-* 翻译包在同一个目录里定义，会一并产出。
