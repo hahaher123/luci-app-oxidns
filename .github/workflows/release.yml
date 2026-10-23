@@ -207,3 +207,87 @@ jobs:
           files: |
             dist/*.apk
             dist/sha256sums.txt
+
+  # ── 只保留最新 5 个 Release（连 tag 一起删），全自动，无需人工 ──────────────
+  #
+  # 为什么放在本 workflow 内、而不是独立的 `on: release` 工作流：
+  #   Release 是本流程用 GITHUB_TOKEN 创建的，而 GitHub 规定「用 GITHUB_TOKEN
+  #   执行的操作不会再触发新的 workflow run」（防递归），`on: release` 收不到
+  #   这个事件。所以清理只能作为本流程里的一个 job。
+  #
+  # 删除策略是「白名单」而不是「按时间切一刀」：
+  #   保留集合 = 最新 5 个 ∪ 本次发布的 tag，其余全删。
+  #   后者是必要的 —— 手动补发旧版本（如重发 v1.0-r1）时，按时间它排在最后，
+  #   只用 `.[5:]` 会把刚发出来的那个立刻删掉。
+  #
+  # 节奏：Release 与 tag 一起删（--cleanup-tag），不留孤儿 tag。
+  # 排序用 created_at（published_at 对 draft 为空），并排除 draft。
+  cleanup:
+    name: 清理旧 Release
+    needs: [prepare, release]
+    if: needs.release.result == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    # 发布密集时避免两次清理并发（例如补发历史版本）。
+    concurrency:
+      group: release-cleanup
+      cancel-in-progress: false
+    steps:
+      - name: 只保留最新 5 个
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          KEEP: '5'
+          CURRENT: ${{ needs.prepare.outputs.tag }}
+        run: |
+          set -euo pipefail
+
+          list_json_flags='--limit 200 --exclude-drafts'
+
+          total=$(gh release list $list_json_flags --json tagName --jq 'length')
+          echo "当前 Release 数：${total}（保留最新 ${KEEP} 个，另加本次发布的 ${CURRENT}）"
+
+          if [ "$total" -le "$KEEP" ]; then
+            echo "数量未超限，无需清理"
+            exit 0
+          fi
+
+          # 白名单：最新的 KEEP 个
+          mapfile -t keep < <(
+            gh release list $list_json_flags --json tagName,createdAt \
+              --jq "sort_by(.createdAt, .tagName) | reverse | .[0:${KEEP}] | .[].tagName"
+          )
+
+          # 本次发布的一定保留（补发旧版本时它按时间排在最后）
+          case " ${keep[*]} " in
+            *" ${CURRENT} "*) ;;
+            *) keep+=("${CURRENT}"); echo "本次发布的 ${CURRENT} 不在最新 ${KEEP} 个内，强制保留" ;;
+          esac
+
+          echo "保留：${keep[*]}"
+
+          mapfile -t all < <(
+            gh release list $list_json_flags --json tagName --jq '.[].tagName'
+          )
+
+          failed=0
+          for tag in "${all[@]}"; do
+            case " ${keep[*]} " in
+              *" ${tag} "*) continue ;;
+            esac
+            if gh release delete "$tag" --yes --cleanup-tag; then
+              echo "  已删除 ${tag}（含 tag）"
+            else
+              echo "::warning::删除 ${tag} 失败，继续下一个"
+              failed=$((failed + 1))
+            fi
+          done
+
+          left=$(gh release list $list_json_flags --json tagName --jq 'length')
+          echo "清理后剩余：${left} 个"
+
+          if [ "$failed" -gt 0 ]; then
+            echo "::error::有 ${failed} 个 Release 删除失败"
+            exit 1
+          fi
