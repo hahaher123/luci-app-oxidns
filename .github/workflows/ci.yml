@@ -50,3 +50,8 @@ jobs:
       # 带缺陷注入跑：注入在临时副本上做，不动仓库文件。
       - name: Run DNS hijack checks
         run: scripts/hijack-check.sh --inject
+
+      # 内核取源：openwrt-oxidns 的 apk 优先，架构不支持才回落官方 archive。
+      # 版本比较（1.6.1-r5 vs 1.6.1）最容易写错，带缺陷注入跑。
+      - name: Run core source checks
+        run: scripts/core-update-check.sh --inject
