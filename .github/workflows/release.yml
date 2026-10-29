@@ -234,6 +234,13 @@ jobs:
       group: release-cleanup
       cancel-in-progress: false
     steps:
+      # gh release delete --cleanup-tag 会执行 git 操作删远端 tag，所以必须在
+      # 一个真正的 git 工作区里跑。缺这一步时 job 直接死在
+      # "fatal: not a git repository"（2026-10-23 的 v1.1-r3 就是这样失败的）。
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+
       - name: 只保留最新 5 个
         shell: bash
         env:
