@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # 内核取源逻辑的契约测试：openwrt-oxidns 的 apk 优先，架构不支持时回落官方。
 #
