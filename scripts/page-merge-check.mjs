@@ -90,7 +90,17 @@ if (!failures.length)
 
 /* -------------------------------------------------- 内核模块的必备要素 */
 
-if (!/return\s*\{[\s\S]*render:\s*render[\s\S]*refresh:\s*refreshStatus/.test(coreSrc))
+/*
+ * 模块必须返回构造函数。LuCI 对带依赖的模块会走 compileClass，返回普通对象
+ * 会在页面里直接抛 "factory yields invalid constructor" —— 2026-11-07 真实踩过。
+ */
+if (!/require baseclass/.test(coreSrc))
+	bad('coresection.js 缺少 require baseclass');
+
+if (!/return\s+baseclass\.extend\(/.test(coreSrc))
+	bad('coresection.js 没有返回 baseclass.extend(...)，LuCI 会报 factory yields invalid constructor');
+
+if (!/render:\s*render[\s\S]*refresh:\s*refreshStatus/.test(coreSrc))
 	bad('coresection.js 没有导出 render / refresh');
 
 for (const id of [

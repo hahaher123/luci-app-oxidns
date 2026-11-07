@@ -1,4 +1,5 @@
 'use strict';
+'require baseclass';
 'require rpc';
 'require ui';
 
@@ -504,10 +505,15 @@ function render(status, opts) {
 	]);
 }
 
-return {
+/*
+ * 必须返回构造函数：LuCI 的模块加载器对带依赖的模块会走 compileClass，
+ * 返回普通对象会抛 "factory yields invalid constructor"（baseclass.extend
+ * 同时把成员挂在构造函数上，所以调用方仍写成 coresection.render(...)）。
+ */
+return baseclass.extend({
 	render: render,
 	refresh: refreshStatus,
 	installed: function() {
 		return coreInstalled(statusState);
 	}
-};
+});
