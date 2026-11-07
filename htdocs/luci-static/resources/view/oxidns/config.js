@@ -4,6 +4,7 @@
 'require ui';
 'require view.oxidns.upload as chunkedUpload';
 'require view.oxidns.cmeditor as cmeditor';
+'require view.oxidns.coresection as coresection';
 
 var callConfigRead = rpc.declare({
 	object: 'luci.oxidns',
@@ -304,22 +305,34 @@ return view.extend({
 		var configMessage = readFailed
 			? (configState.message || _('Unable to load configuration.'))
 			: '';
+		var hasCore = !!(statusState.core && statusState.core.installed);
 
 		editorState.content = null;
 		editorState.resultKind = null;
 
-		if (readFailed && !coreInstalled(statusState)) {
+		/*
+		 * 内核区块与配置区块在同一页：内核在上（状态 + 安装/更新/上传/删除），
+		 * 配置在下（路径 + YAML 编辑器 + 校验/保存）。
+		 * 内核装好（或卸掉）时配置可能从"读不到"变成"能编辑"，此时整页重载一次，
+		 * 让编辑器拿到真实内容 —— 这一刻页面上还没有任何未保存的编辑，重载无损失。
+		 */
+		var coreNode = coresection.render(statusState, {
+			onChange: function(status) {
+				var installedNow = !!(status && status.core && status.core.installed);
+
+				if (readFailed && installedNow)
+					window.location.reload();
+			}
+		});
+
+		if (readFailed && !hasCore) {
 			return E('div', { 'class': 'cbi-map' }, [
-				E('h2', {}, _('OxiDNS Configuration')),
-				E('div', { 'class': 'cbi-map-descr' },
-					_('Edit, validate, and save the full OxiDNS YAML configuration file.')),
-				E('div', { 'class': 'cbi-section' }, [
+				E('h2', {}, _('OxiDNS')),
+				coreNode,
+				E('div', { 'class': 'cbi-section', 'id': 'oxidns-config-section' }, [
+					E('h3', {}, _('Configuration')),
 					E('div', { 'class': 'alert-message warning', 'style': 'margin: 1em 0;' },
-						_('Install the OxiDNS core before editing the configuration.')),
-					E('a', {
-						'class': 'btn cbi-button cbi-button-action',
-						'href': L.url('admin/services/oxidns/core')
-					}, _('Install Core'))
+						_('Install the OxiDNS core before editing the configuration.'))
 				])
 			]);
 		}
@@ -359,11 +372,13 @@ return view.extend({
 		});
 
 		return E('div', { 'class': 'cbi-map' }, [
-			E('h2', {}, _('OxiDNS Configuration')),
-			E('div', { 'class': 'cbi-map-descr' },
-				_('Edit, validate, and save the full OxiDNS YAML configuration file.')),
-			E('div', { 'class': 'cbi-section' }, [
-				E('h3', {}, _('YAML')),
+			E('h2', {}, _('OxiDNS')),
+			coreNode,
+			E('div', { 'class': 'cbi-section', 'id': 'oxidns-config-section' }, [
+				E('h3', {}, _('Configuration')),
+				E('div', { 'class': 'cbi-section-descr' },
+					_('Edit, validate, and save the full OxiDNS YAML configuration file.')),
+				E('h4', {}, _('YAML')),
 				E('div', { 'class': 'table cbi-section-table' }, [
 					E('div', { 'class': 'tr' }, [
 						E('div', { 'class': 'td left', 'style': 'width: 240px' }, _('Path')),

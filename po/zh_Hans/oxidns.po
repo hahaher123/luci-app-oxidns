@@ -118,6 +118,9 @@ msgstr "内核操作失败"
 msgid "Core repository"
 msgstr "内核仓库"
 
+msgid "Core & Configuration"
+msgstr "内核与配置"
+
 msgid "Core Status"
 msgstr "内核状态"
 
@@ -302,9 +305,6 @@ msgstr "概览"
 
 msgid "OxiDNS"
 msgstr "OxiDNS"
-
-msgid "OxiDNS Configuration"
-msgstr "OxiDNS 配置"
 
 msgid "OxiDNS Core"
 msgstr "OxiDNS 内核"
