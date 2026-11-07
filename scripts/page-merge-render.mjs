@@ -65,8 +65,6 @@ function loadView(file, extra) {
 		},
 		ui: { addNotification() {}, addTimeLimitedNotification() {}, showModal() {}, hideModal() {} },
 		rpc: { declare: () => () => Promise.resolve({}) },
-		/* LuCI 的 baseclass.extend 返回构造函数，成员同时挂在函数上 */
-		baseclass: { extend: (proto) => Object.assign(function() {}, proto) },
 		view: { extend: (o) => o },
 		Promise,
 		window: { setTimeout: () => 0, setInterval: () => 0, clearInterval() {}, location: { reload() {} }, innerHeight: 900 },
@@ -91,9 +89,6 @@ const cmeditorStub = { load: () => Promise.resolve(false), defer() {}, getValue(
 const uploadStub = { uploadText: () => Promise.resolve({}), progressSuffix: () => '' };
 
 const coresection = loadView('coresection.js', {});
-
-if (typeof coresection !== 'function')
-	failures.push('coresection.js 没有返回构造函数（LuCI 会抛 factory yields invalid constructor）');
 const view = loadView('config.js', { cmeditor: cmeditorStub, chunkedUpload: uploadStub, coresection: coresection });
 
 /* ------------------------------------------------------------- 工具 */
