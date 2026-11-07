@@ -20,9 +20,20 @@
 			"acl": [ "luci-app-oxidns" ]
 		}
 	},
-	"admin/services/oxidns/config": {
-		"title": "Core & Configuration",
+	"admin/services/oxidns/core": {
+		"title": "Core",
 		"order": 20,
+		"action": {
+			"type": "view",
+			"path": "oxidns/core"
+		},
+		"depends": {
+			"acl": [ "luci-app-oxidns" ]
+		}
+	},
+	"admin/services/oxidns/config": {
+		"title": "Configuration",
+		"order": 30,
 		"action": {
 			"type": "view",
 			"path": "oxidns/config"

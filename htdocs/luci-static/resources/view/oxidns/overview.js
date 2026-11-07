@@ -290,7 +290,7 @@ function disabledActionButton(label, hint, id) {
 function coreInstallLink() {
 	return E('a', {
 		'class': 'btn cbi-button cbi-button-action',
-		'href': L.url('admin/services/oxidns/config')
+		'href': L.url('admin/services/oxidns/core')
 	}, _('Install Core'));
 }
 

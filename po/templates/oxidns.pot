@@ -109,9 +109,6 @@ msgstr ""
 msgid "Core repository"
 msgstr ""
 
-msgid "Core & Configuration"
-msgstr ""
-
 msgid "Core Status"
 msgstr ""
 
@@ -295,6 +292,9 @@ msgid "Overview"
 msgstr ""
 
 msgid "OxiDNS"
+msgstr ""
+
+msgid "OxiDNS Configuration"
 msgstr ""
 
 msgid "OxiDNS Core"
