@@ -128,7 +128,7 @@ done
 	--contains luci.oxidns \
 	--contains targets.json \
 	--contains luci-app-oxidns.json \
-	--contains overview.js \
+	--contains hijack.js \
 	--contains oxidns.zh-cn.lmo \
 	"$APP_APK" "$I18N_APK"
 

@@ -170,6 +170,16 @@ sh -n scripts/integration-check.sh
 sh -n scripts/release-check.sh
 sh -n scripts/core-update-check.sh
 
+# release-check.sh 的 --contains 清单必须与真实交付文件同步：删了 view 文件却
+# 忘了改清单，会等到 CI 编译产物校验才失败（2026-11-20 删 overview.js 时踩过，
+# 白跑一次 12 分钟的 Release）。断言清单里每个 *.js 都在 view 目录存在。
+for js in $(sed -n 's/.*--contains \([A-Za-z0-9_-]*\.js\)\([[:space:]]\|$\).*/\1/p' scripts/release-check.sh | grep -v '\.json$'); do
+	if [ ! -f "htdocs/luci-static/resources/view/oxidns/$js" ]; then
+		echo "release-check.sh 断言的 view 文件不存在: $js" >&2
+		exit 1
+	fi
+done
+
 # ---------------------------------------------------------------- 源码守卫
 # OpenWrt 25.12 的 busybox **没有 stat applet**（设备实测 `ash: stat: not found`，
 # rc=127）。`stat -c %Y` 失败会被 2>/dev/null 吞掉，调用方只拿到空串：Geo 页的
