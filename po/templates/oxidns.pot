@@ -80,9 +80,6 @@ msgstr ""
 msgid "Control the OpenWrt init service for OxiDNS."
 msgstr ""
 
-msgid "Core"
-msgstr ""
-
 msgid "Core bundle"
 msgstr ""
 
@@ -122,8 +119,6 @@ msgid "Discard unsaved changes and load another file?"
 msgstr ""
 
 msgid "Discard unsaved changes and reload this file?"
-msgstr ""
-msgid "DNS hijack"
 msgstr ""
 msgid "DNS hijack disabled."
 msgstr ""
@@ -230,18 +225,12 @@ msgstr ""
 msgid "Update checks the openwrt-oxidns package first and falls back to the official OxiDNS release archive for architectures it does not build. Upload accepts a .tar.gz archive or a single oxidns binary."
 msgstr ""
 
-msgid "Manage the OxiDNS runtime, service, configuration, and logs from LuCI."
-msgstr ""
-
 msgid "Modified"
 msgstr ""
 
 msgid "No"
 msgstr ""
 msgid "No rule files were found in the rule directory."
-msgstr ""
-
-msgid "Not installed"
 msgstr ""
 
 msgid "One rule per line. Lines starting with # are ignored."
@@ -539,9 +528,6 @@ msgstr ""
 msgid "Read the port from config.yaml automatically"
 msgstr ""
 
-msgid "Redirect LAN DNS requests on port 53 (TCP and UDP, IPv4 and IPv6) to the local OxiDNS DNS listener. Pick where the target port comes from: read it from the OxiDNS config.yaml, or enter one manually. Implemented as an fw4 firewall redirect, so lookups made by the router itself are not affected."
-msgstr ""
-
 msgid "UDP port %s, TCP port %s"
 msgstr ""
 
@@ -618,4 +604,16 @@ msgid "GeoSite download URL"
 msgstr ""
 
 msgid "Storage directory"
+msgstr ""
+
+msgid "DNS Hijack"
+msgstr ""
+
+msgid "Install the OxiDNS core before DNS hijack can redirect to a local listener."
+msgstr ""
+
+msgid "Manage the OxiDNS core, service, configuration, and logs from one page."
+msgstr ""
+
+msgid "Redirect LAN DNS requests on port 53 (TCP and UDP, IPv4 and IPv6) to the local OxiDNS DNS listener."
 msgstr ""

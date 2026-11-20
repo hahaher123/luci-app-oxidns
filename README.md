@@ -15,14 +15,14 @@ apk add --allow-untrusted --no-network ./luci-i18n-oxidns-zh-cn-<版本>.apk
 
 校验和见 Release 里的 `sha256sums.txt`。`opkg` 系统（24.10 及更早）用 `scripts/build-luci-package.sh` 本地产出 `ipk` 再 `opkg install`。装完菜单没出现就重启 `rpcd`（`/etc/init.d/rpcd restart`）。
 
-**装内核**：从旧的 `oxidns` 包迁移时先停服务并卸载旧包（`/etc/init.d/oxidns stop`；`apk del oxidns`），然后到 `Settings` 确认 `Core repository` 为 `svenshi/oxidns`，`Core` 页点 `Install Core`（LuCI 按设备架构下载官方 musl archive 并校验 SHA256；离线环境用 `Upload Core` 上传），最后在 `Overview` 启动服务。内核已装时 `Core` 页提供 `Repair Reinstall` / `Upload Core` 修复，不做升级。
+**装内核**：从旧的 `oxidns` 包迁移时先停服务并卸载旧包（`/etc/init.d/oxidns stop`；`apk del oxidns`），然后到 `Core & Settings` 确认 `Core repository` 为 `svenshi/oxidns` 并点 `Install Core`（LuCI 按设备架构下载官方 musl archive 并校验 SHA256；离线环境用 `Upload Core` 上传），最后在同一页启动服务。内核已装时提供 `Repair Reinstall` / `Upload Core` 修复，不做升级。
 
 ## 页面
 
 | 页面 | 用途 |
 | --- | --- |
-| `Overview` | 内核 / 服务状态、WebUI 入口；DNS 劫持开关（把局域网发往 53 端口的 DNS 请求重定向到本机 OxiDNS，目标端口从 config.yaml 解析） |
-| `Core & Settings` | 单页：上半部分为内核状态与安装/更新/上传/修复/删除，下半部分为内核源、代理、token、路径设置 |
+| `Core & Settings` | 单页：概览（运行状态、WebUI 入口）、服务启停与开机自启、内核状态与安装/更新/上传/修复/删除、内核源/代理/token/路径设置 |
+| `DNS Hijack` | DNS 劫持开关（把局域网发往 53 端口的 DNS 请求重定向到本机 OxiDNS，目标端口自动读 config.yaml 或手工指定） |
 | `Configuration` | 查看、校验、保存配置文件 |
 | `Rule Files` | 编辑规则列表文件；定时重置学习文件 |
 | `Geo Data` | geoip.dat / geosite.dat 下载与更新（默认 jsDelivr 上的 Loyalsoldier 增强版，落点 `/usr/share/v2ray`，地址与目录可改、可一键还原） |
@@ -38,7 +38,7 @@ apk add --allow-untrusted --no-network ./luci-i18n-oxidns-zh-cn-<版本>.apk
 
 ## 网络受限环境
 
-路由器需能访问 GitHub Releases。受限网络可在 `Settings` 配 GitHub token 或下载代理（保存后不回显），或在 `Core` 页直接上传 archive / 二进制离线安装。
+路由器需能访问 GitHub Releases。受限网络可在 `Core & Settings` 页配 GitHub token 或下载代理（保存后不回显），或直接上传 archive / 二进制离线安装。
 
 ## 本分支相对上游的改动
 

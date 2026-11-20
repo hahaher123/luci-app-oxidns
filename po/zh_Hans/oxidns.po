@@ -89,9 +89,6 @@ msgstr "确认"
 msgid "Control the OpenWrt init service for OxiDNS."
 msgstr "控制 OxiDNS 的 OpenWrt init 服务。"
 
-msgid "Core"
-msgstr "内核"
-
 msgid "Core bundle"
 msgstr "内核 bundle"
 
@@ -132,8 +129,6 @@ msgstr "有未保存的修改，确定放弃并切换到另一个文件？"
 
 msgid "Discard unsaved changes and reload this file?"
 msgstr "有未保存的修改，确定放弃并重新载入该文件？"
-msgid "DNS hijack"
-msgstr "DNS 劫持"
 msgid "DNS hijack disabled."
 msgstr "DNS 劫持已关闭。"
 msgid "DNS hijack enabled. LAN port 53 requests are redirected to OxiDNS."
@@ -239,9 +234,6 @@ msgstr "LuCI 后端"
 msgid "Update checks the openwrt-oxidns package first and falls back to the official OxiDNS release archive for architectures it does not build. Upload accepts a .tar.gz archive or a single oxidns binary."
 msgstr "更新会先检查 openwrt-oxidns 的软件包，它未覆盖的架构回落到 OxiDNS 官方发布归档。上传支持 .tar.gz 归档或单个 oxidns 二进制。"
 
-msgid "Manage the OxiDNS runtime, service, configuration, and logs from LuCI."
-msgstr "在 LuCI 中管理 OxiDNS 运行时、服务、配置和日志。"
-
 msgid "Modified"
 msgstr "修改时间"
 
@@ -249,9 +241,6 @@ msgid "No"
 msgstr "否"
 msgid "No rule files were found in the rule directory."
 msgstr "规则目录下没有找到任何规则文件。"
-
-msgid "Not installed"
-msgstr "未安装"
 
 msgid "One rule per line. Lines starting with # are ignored."
 msgstr "每行一条规则，以 # 开头的行会被忽略。"
@@ -548,9 +537,6 @@ msgstr "没有可用的目标端口（来源：%s）。"
 msgid "Read the port from config.yaml automatically"
 msgstr "自动从 config.yaml 读取端口"
 
-msgid "Redirect LAN DNS requests on port 53 (TCP and UDP, IPv4 and IPv6) to the local OxiDNS DNS listener. Pick where the target port comes from: read it from the OxiDNS config.yaml, or enter one manually. Implemented as an fw4 firewall redirect, so lookups made by the router itself are not affected."
-msgstr "把局域网发往 53 端口（TCP/UDP、IPv4/IPv6）的 DNS 请求重定向到本机 OxiDNS 的 DNS 监听端口。目标端口可以自动从 OxiDNS 的 config.yaml 读取，也可以手动填写。实现为 fw4 防火墙重定向规则，路由器自身的 DNS 查询不受影响。"
-
 msgid "UDP port %s, TCP port %s"
 msgstr "UDP 端口 %s，TCP 端口 %s"
 
@@ -628,3 +614,15 @@ msgstr "GeoSite 下载地址"
 
 msgid "Storage directory"
 msgstr "存放目录"
+
+msgid "DNS Hijack"
+msgstr "DNS 劫持"
+
+msgid "Install the OxiDNS core before DNS hijack can redirect to a local listener."
+msgstr "请先安装 OxiDNS 内核，DNS 劫持才能重定向到本地监听端口。"
+
+msgid "Manage the OxiDNS core, service, configuration, and logs from one page."
+msgstr "在同一页面管理 OxiDNS 内核、服务、配置与日志。"
+
+msgid "Redirect LAN DNS requests on port 53 (TCP and UDP, IPv4 and IPv6) to the local OxiDNS DNS listener."
+msgstr "把局域网发往 53 端口的 DNS 请求（TCP/UDP、IPv4/IPv6）重定向到本机 OxiDNS DNS 监听端口。"

@@ -67,11 +67,12 @@ function loadView(file, extra) {
 		ui: { addNotification() {}, addTimeLimitedNotification() {}, showModal() {}, hideModal() {} },
 		rpc: { declare: () => () => Promise.resolve({}) },
 		view: { extend: (o) => o },
+		poll: { add: () => {} },
 		/* LuCI 的 baseclass.extend 返回构造函数，成员同时挂在函数上 */
 		baseclass: { extend: (proto) => Object.assign(function() {}, proto) },
 		Promise,
 		window: { setTimeout: () => 0, setInterval: () => 0, clearInterval() {}, location: { reload() {} }, innerHeight: 900 },
-		document: { getElementById: () => null, createElement: () => E('div'), body: {} },
+		document: { getElementById: () => null, querySelector: () => null, createElement: () => E('div'), body: {} },
 		console,
 		...extra
 	};
@@ -193,6 +194,38 @@ if (!missingText.includes('Install Core'))
 
 if (missingText.includes('Update Core'))
 	failures.push('未装内核时不该出现 Update Core');
+
+/* 6) 合并页的概览/服务区块 id 必须在渲染树里 */
+for (const id of [ 'oxidns-overview-section', 'oxidns-service-section',
+	'oxidns-backend-status', 'oxidns-build', 'oxidns-service-running',
+	'oxidns-webui', 'oxidns-service-actions' ]) {
+	if (!allIds.includes(id))
+		failures.push(`合并页渲染结果缺少 id: ${id}`);
+}
+
+/* 7) DNS 劫持独立页渲染契约 */
+const hijackView = loadView('hijack.js', {});
+const hijackData = {
+	hijack: { enabled: true, port_mode: 'manual', manual_port: 5353, udp_port: 5353,
+		tcp_port: 5353, sections: [ 'oxidns_hijack' ] },
+	status: { core: { installed: true } }
+};
+const hijackTree = hijackView.render(hijackData);
+const hijackIds = ids(hijackTree);
+const hijackText = texts(hijackTree);
+
+for (const id of [ 'oxidns-hijack-section', 'oxidns-hijack-ports',
+	'oxidns-hijack-sections', 'oxidns-hijack-mode-auto', 'oxidns-hijack-mode-manual',
+	'oxidns-hijack-port', 'oxidns-hijack-enabled', 'oxidns-hijack-apply',
+	'oxidns-hijack-status' ]) {
+	if (!hijackIds.includes(id))
+		failures.push(`hijack 页渲染结果缺少 id: ${id}`);
+}
+
+for (const label of [ 'DNS Hijack', 'Enable DNS hijack', 'Apply' ]) {
+	if (!hijackText.includes(label))
+		failures.push(`hijack 页缺少文案: ${label}`);
+}
 
 /* ------------------------------------------------------------- 输出 */
 

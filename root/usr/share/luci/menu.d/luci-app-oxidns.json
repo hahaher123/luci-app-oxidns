@@ -9,12 +9,23 @@
 			"acl": [ "luci-app-oxidns" ]
 		}
 	},
-	"admin/services/oxidns/overview": {
-		"title": "Overview",
+	"admin/services/oxidns/settings": {
+		"title": "Core & Settings",
 		"order": 10,
 		"action": {
 			"type": "view",
-			"path": "oxidns/overview"
+			"path": "oxidns/settings"
+		},
+		"depends": {
+			"acl": [ "luci-app-oxidns" ]
+		}
+	},
+	"admin/services/oxidns/hijack": {
+		"title": "DNS Hijack",
+		"order": 20,
+		"action": {
+			"type": "view",
+			"path": "oxidns/hijack"
 		},
 		"depends": {
 			"acl": [ "luci-app-oxidns" ]
@@ -59,17 +70,6 @@
 		"action": {
 			"type": "view",
 			"path": "oxidns/logs"
-		},
-		"depends": {
-			"acl": [ "luci-app-oxidns" ]
-		}
-	},
-	"admin/services/oxidns/settings": {
-		"title": "Core & Settings",
-		"order": 20,
-		"action": {
-			"type": "view",
-			"path": "oxidns/settings"
 		},
 		"depends": {
 			"acl": [ "luci-app-oxidns" ]
