@@ -32,9 +32,6 @@ msgstr ""
 msgid "Blacklist"
 msgstr ""
 
-msgid "Build"
-msgstr ""
-
 msgid "Bundle"
 msgstr ""
 
@@ -240,9 +237,6 @@ msgid "Open WebUI"
 msgstr ""
 
 msgid "Optional. The token is never shown after saving."
-msgstr ""
-
-msgid "Overview"
 msgstr ""
 
 msgid "OxiDNS"

@@ -41,9 +41,6 @@ msgstr "二进制路径"
 msgid "Blacklist"
 msgstr "黑名单"
 
-msgid "Build"
-msgstr "构建信息"
-
 msgid "Bundle"
 msgstr "Bundle"
 
@@ -250,9 +247,6 @@ msgstr "打开 WebUI"
 
 msgid "Optional. The token is never shown after saving."
 msgstr "可选。保存后不会再显示 Token。"
-
-msgid "Overview"
-msgstr "概览"
 
 msgid "OxiDNS"
 msgstr "OxiDNS"

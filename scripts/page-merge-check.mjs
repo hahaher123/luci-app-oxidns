@@ -147,9 +147,9 @@ for (const f of views) {
 const hijackSrc = exists('htdocs/luci-static/resources/view/oxidns/hijack.js')
 	? read('htdocs/luci-static/resources/view/oxidns/hijack.js') : '';
 
-for (const block of [ 'overviewSection', 'serviceSection' ]) {
+for (const block of [ 'overviewRows', 'serviceSection' ]) {
 	if (!settingsSrc.includes('function ' + block + '('))
-		bad(`settings.js 缺少概览/服务区块: ${block}`);
+		bad(`settings.js 缺少概览行/服务区块: ${block}`);
 }
 
 if (settingsSrc.includes('callHijackGet') || settingsSrc.includes('hijack_save') ||
@@ -163,7 +163,21 @@ for (const token of [ 'hijack_get', 'hijack_save', 'oxidns-hijack-port-mode',
 		bad(`hijack.js 缺少 DNS 劫持要素: ${token}`);
 }
 
-ok('概览/服务已并入 settings，DNS 劫持独立在 hijack.js');
+/* 2026-11-20: 概览字段必须并进内核表（extraRows），不再是独立 section；
+   且概览不能重复显示内核已有的 Build / Service status 字段。 */
+if (!settingsSrc.includes('extraRows: overviewRows(status)'))
+	bad('settings.js 没把 overviewRows 作为 extraRows 传入 coresection');
+
+if (!coreSrc.includes('opts.extraRows') || !coreSrc.includes('rows.concat(opts.extraRows)'))
+	bad('coresection.js 未把 extraRows 并入 Core Status 表');
+
+var overviewRowsBody = settingsSrc.slice(
+	settingsSrc.indexOf('function overviewRows'),
+	settingsSrc.indexOf('function serviceSection'));
+if (/renderRow\(_\('(Build|Service status)'\)/.test(overviewRowsBody))
+	bad('overviewRows 仍重复显示内核已有的 Build / Service status');
+
+ok('概览字段并入内核表（无重复），服务/劫持各自独立');
 
 /* ---------------------------------------------------------------- ACL */
 

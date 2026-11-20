@@ -12,7 +12,10 @@
  *
  * 对外只暴露两个方法：
  *   render(status, opts) - 用 status 快照渲染区块；opts.onChange 在"内核装/卸"
- *                          这类状态翻转时被调用（配置页据此决定要不要重读配置）
+ *                          这类状态翻转时被调用（配置页据此决定要不要重读配置）。
+ *                          opts.extraRows 是额外状态行（概览的 LuCI 后端 / 开机
+ *                          自启 / WebUI），追加到 Core Status 表末尾，与内核字段
+ *                          共用一张表，避免两处重复显示状态。
  *   refresh()            - 重新拉一次状态，就地更新表格与按钮（操作完成后调用）
  *
  * 所有元素 id 保持与合并前一致（oxidns-core-*），刷新逻辑仍按 id 找节点。
@@ -487,6 +490,11 @@ function render(status, opts) {
 		renderRow(_('Binary path'), core.binary_path, 'oxidns-core-binary'),
 		renderRow(_('Service status'), serviceRunning(statusState) ? _('Running') : _('Stopped'), 'oxidns-core-service')
 	];
+
+	// 2026-11-20: 概览区并入本区块，共用一张状态表，避免两处状态重复显示。
+	// extraRows 由调用方构造（LuCI 后端 / 开机自启 / WebUI 等非内核字段）。
+	if (opts && Array.isArray(opts.extraRows) && opts.extraRows.length)
+		rows = rows.concat(opts.extraRows);
 
 	return E('div', { 'class': 'cbi-section', 'id': 'oxidns-core-section' }, [
 		E('h3', {}, _('OxiDNS Core')),

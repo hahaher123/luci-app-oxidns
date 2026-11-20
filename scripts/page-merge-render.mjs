@@ -195,13 +195,26 @@ if (!missingText.includes('Install Core'))
 if (missingText.includes('Update Core'))
 	failures.push('未装内核时不该出现 Update Core');
 
-/* 6) 合并页的概览/服务区块 id 必须在渲染树里 */
-for (const id of [ 'oxidns-overview-section', 'oxidns-service-section',
-	'oxidns-backend-status', 'oxidns-build', 'oxidns-service-running',
-	'oxidns-webui', 'oxidns-service-actions' ]) {
+/* 6) 合并页的服务区块 + 内核表里的概览字段 id 必须在渲染树里。
+   2026-11-20: 概览已并入内核表，不再有独立 oxidns-overview-section；
+   Build / Service status 已删（内核表里有），不能再出现。 */
+for (const id of [ 'oxidns-core-section', 'oxidns-service-section',
+	'oxidns-backend-status', 'oxidns-service-enabled', 'oxidns-webui',
+	'oxidns-service-actions' ]) {
 	if (!allIds.includes(id))
 		failures.push(`合并页渲染结果缺少 id: ${id}`);
 }
+
+for (const id of [ 'oxidns-overview-section', 'oxidns-build', 'oxidns-service-running' ]) {
+	if (allIds.includes(id))
+		failures.push(`合并页仍有重复/过时的 id: ${id}`);
+}
+
+/* 6b) 概览字段必须出现在内核表之后（extraRows 追加），且只有一张状态表 */
+const allOverviewInCore = [ 'oxidns-core-installed', 'oxidns-backend-status',
+	'oxidns-service-enabled', 'oxidns-webui' ].every((x) => allIds.includes(x));
+if (!allOverviewInCore)
+	failures.push('内核表未包含合并后的概览字段');
 
 /* 7) DNS 劫持独立页渲染契约 */
 const hijackView = loadView('hijack.js', {});

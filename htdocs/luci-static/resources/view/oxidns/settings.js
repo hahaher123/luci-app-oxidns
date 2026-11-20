@@ -266,8 +266,6 @@ function refreshStatus() {
 
 		var fields = {
 			'oxidns-backend-status': backendStatusBadge(statusState),
-			'oxidns-build': buildSummary(statusState),
-			'oxidns-service-running': serviceStatusBadge(statusState),
 			'oxidns-service-enabled': boolText(statusState.service_status && statusState.service_status.enabled),
 			'oxidns-webui': webuiEntry(statusState)
 		};
@@ -501,11 +499,9 @@ function saveSettings() {
 
 /* ------------------------------------------------------------ 区块渲染 */
 
-function overviewSection(status) {
+function overviewRows(status) {
 	var rows = [
 		renderRow(_('LuCI backend'), backendStatusBadge(status), 'oxidns-backend-status'),
-		renderRow(_('Build'), buildSummary(status), 'oxidns-build'),
-		renderRow(_('Service status'), serviceStatusBadge(status), 'oxidns-service-running'),
 		renderRow(_('Start on boot'), boolText(status.service_status && status.service_status.enabled), 'oxidns-service-enabled'),
 		renderRow(_('WebUI'), webuiEntry(status), 'oxidns-webui')
 	];
@@ -513,10 +509,7 @@ function overviewSection(status) {
 	if (status.error)
 		rows.push(renderRow(_('Error'), status.error));
 
-	return E('div', { 'class': 'cbi-section', 'id': 'oxidns-overview-section' }, [
-		E('h3', {}, _('Overview')),
-		E('div', { 'class': 'table cbi-section-table' }, rows)
-	]);
+	return rows;
 }
 
 function serviceSection(status) {
@@ -598,10 +591,9 @@ return view.extend({
 			E('h2', {}, _('OxiDNS')),
 			E('div', { 'class': 'cbi-map-descr' },
 				_('Manage the OxiDNS core, service, configuration, and logs from one page.')),
-			overviewSection(status),
+			/* 内核状态 + 概览字段共用一张表，见 coresection.js 的 extraRows */
+			coresection.render(status, { extraRows: overviewRows(status) }),
 			serviceSection(status),
-			/* 内核状态与安装/更新/上传/删除都在这一块，见 coresection.js */
-			coresection.render(status, {}),
 			settingsSection(settings)
 		]);
 	},
